@@ -46,7 +46,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
       const bIndex = visitedPostIds.indexOf(b.id);
       return aIndex - bIndex;
     })
-    .slice(0, 5);
+    .slice(0, 10); // Show up to 10 recent posts instead of 5
 
   const handlePostClick = (postId: number) => {
     // Add to visited posts and update localStorage
