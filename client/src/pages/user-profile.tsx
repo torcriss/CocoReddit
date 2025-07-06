@@ -303,23 +303,41 @@ export default function UserProfile() {
                     No comments yet
                   </div>
                 ) : (
-                  userComments.map((comment) => (
-                    <div
-                      key={comment.id}
-                      className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors"
-                    >
-                      <p className="text-gray-900 dark:text-white mb-2 line-clamp-3">
-                        {comment.content}
-                      </p>
-                      <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                        <div className="flex items-center space-x-1">
-                          <ChevronUp className="h-4 w-4" />
-                          <span>{comment.votes || 0}</span>
+                  userComments.map((comment) => {
+                    const commentPost = posts.find(p => p.id === comment.postId);
+                    return (
+                      <div
+                        key={comment.id}
+                        onClick={() => comment.postId && handlePostClick(comment.postId!)}
+                        className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors cursor-pointer"
+                      >
+                        {commentPost && getSubredditName(commentPost.subredditId ?? undefined) && (
+                          <div className="mb-1">
+                            <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                              r/{getSubredditName(commentPost.subredditId ?? undefined)}
+                            </span>
+                          </div>
+                        )}
+                        {commentPost && (
+                          <div className="mb-2">
+                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                              Commented on: {commentPost.title}
+                            </span>
+                          </div>
+                        )}
+                        <p className="text-gray-900 dark:text-white mb-2 line-clamp-3">
+                          {comment.content}
+                        </p>
+                        <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                          <div className="flex items-center space-x-1">
+                            <ChevronUp className="h-4 w-4" />
+                            <span>{comment.votes || 0}</span>
+                          </div>
+                          <span>{formatTimeAgo(comment.createdAt)}</span>
                         </div>
-                        <span>{formatTimeAgo(comment.createdAt)}</span>
                       </div>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </CardContent>

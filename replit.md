@@ -128,6 +128,7 @@ Changelog:
 - July 06, 2025. Added community information and clickable functionality to Recent Posts and Saved Posts sections on profile page
 - July 06, 2025. Reordered profile page posts to show community first, then title
 - July 06, 2025. Applied consistent light blue styling (text-blue-600/text-blue-400) for community names across homepage and profile page
+- July 06, 2025. Enhanced Recent Comments section on profile page to show community, post title, and made clickable to navigate to post details
 ```
 
 ## User Preferences
