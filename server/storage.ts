@@ -276,11 +276,15 @@ export class DatabaseStorage implements IStorage {
 
     // Update vote counts
     if (vote.postId) {
+      // Calculate current vote total for this post
+      const voteSum = await db
+        .select({ total: sql<number>`COALESCE(SUM(vote_type), 0)` })
+        .from(votes)
+        .where(eq(votes.postId, vote.postId));
+      
       await db
         .update(posts)
-        .set({
-          votes: sql`${posts.votes} + ${vote.voteType}`
-        })
+        .set({ votes: voteSum[0].total })
         .where(eq(posts.id, vote.postId));
     }
 
@@ -311,11 +315,15 @@ export class DatabaseStorage implements IStorage {
 
     // Update vote counts
     if (updatedVote.postId) {
+      // Calculate current vote total for this post
+      const voteSum = await db
+        .select({ total: sql<number>`COALESCE(SUM(vote_type), 0)` })
+        .from(votes)
+        .where(eq(votes.postId, updatedVote.postId));
+      
       await db
         .update(posts)
-        .set({
-          votes: sql`${posts.votes} + ${voteDiff}`
-        })
+        .set({ votes: voteSum[0].total })
         .where(eq(posts.id, updatedVote.postId));
     }
 
@@ -340,11 +348,15 @@ export class DatabaseStorage implements IStorage {
 
     // Update vote counts
     if (vote.postId) {
+      // Calculate current vote total for this post
+      const voteSum = await db
+        .select({ total: sql<number>`COALESCE(SUM(vote_type), 0)` })
+        .from(votes)
+        .where(eq(votes.postId, vote.postId));
+      
       await db
         .update(posts)
-        .set({
-          votes: sql`${posts.votes} - ${vote.voteType}`
-        })
+        .set({ votes: voteSum[0].total })
         .where(eq(posts.id, vote.postId));
     }
 
