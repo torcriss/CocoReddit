@@ -3,10 +3,8 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { MessageSquare, Share2, BookmarkPlus, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
-import CommentThread from "./CommentThread";
 import ShareDialog from "./ShareDialog";
 import type { Post } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
@@ -21,7 +19,6 @@ interface PostCardProps {
 export default function PostCard({ post }: PostCardProps) {
   const [userVote, setUserVote] = useState<number | null>(null);
   const [optimisticVotes, setOptimisticVotes] = useState(post.votes || 0);
-  const [showComments, setShowComments] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
@@ -284,7 +281,22 @@ export default function PostCard({ post }: PostCardProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowComments(!showComments)}
+            onClick={() => {
+              // Track visited post
+              const stored = localStorage.getItem('visitedPosts');
+              let visitedIds: number[] = [];
+              if (stored) {
+                try {
+                  visitedIds = JSON.parse(stored);
+                } catch {
+                  visitedIds = [];
+                }
+              }
+              const newVisitedIds = [post.id, ...visitedIds.filter(id => id !== post.id)];
+              localStorage.setItem('visitedPosts', JSON.stringify(newVisitedIds));
+              
+              setLocation(`/post/${post.id}`);
+            }}
             className="flex items-center space-x-1 hover:bg-gray-100 dark:hover:bg-reddit-dark text-gray-500 dark:text-gray-400"
           >
             <MessageSquare className="h-4 w-4" />
@@ -312,13 +324,6 @@ export default function PostCard({ post }: PostCardProps) {
             <span>Save</span>
           </Button>
         </div>
-
-        {/* Comments Section */}
-        {showComments && (
-          <div className="border-t border-gray-200 dark:border-gray-700 pt-4 mt-4">
-            <CommentThread postId={post.id} />
-          </div>
-        )}
       </div>
 
       {/* Share Dialog */}
