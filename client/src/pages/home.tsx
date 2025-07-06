@@ -4,7 +4,8 @@ import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
-import { Flame, Clock, TrendingUp, LayoutGrid, List } from "lucide-react";
+import { Flame, Clock, TrendingUp, LayoutGrid, List, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import type { Post } from "@shared/schema";
 
 export default function Home() {
@@ -13,9 +14,11 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<"home" | "popular">("home");
   const [selectedSubreddit, setSelectedSubreddit] = useState<number | null>(null);
   const [layoutMode, setLayoutMode] = useState<"list" | "grid">("list");
+  const [showUserPosts, setShowUserPosts] = useState(false);
+  const { user } = useAuth();
 
   const { data: posts = [], isLoading } = useQuery<Post[]>({
-    queryKey: ["/api/posts", { sortBy, search: searchQuery, viewMode, subredditId: selectedSubreddit }],
+    queryKey: ["/api/posts", { sortBy, search: searchQuery, viewMode, subredditId: selectedSubreddit, showUserPosts }],
     queryFn: async () => {
       const params = new URLSearchParams();
       // In popular mode, force "top" sorting and show all posts
@@ -26,7 +29,15 @@ export default function Home() {
       
       const response = await fetch(`/api/posts?${params}`);
       if (!response.ok) throw new Error("Failed to fetch posts");
-      return response.json();
+      const allPosts = await response.json();
+      
+      // Filter by user posts if showUserPosts is true
+      if (showUserPosts && user) {
+        const userIdentifier = user.firstName || user.email || "anonymous";
+        return allPosts.filter((post: Post) => post.authorUsername === userIdentifier);
+      }
+      
+      return allPosts;
     },
   });
 
@@ -39,6 +50,12 @@ export default function Home() {
   const selectedSubredditData = selectedSubreddit 
     ? subreddits.find(s => s.id === selectedSubreddit)
     : null;
+
+  const handleShowUserPosts = () => {
+    setShowUserPosts(true);
+    setSelectedSubreddit(null); // Clear subreddit filter when showing user posts
+    setViewMode("home"); // Reset view mode
+  };
 
   const sortOptions = [
     { key: "hot", label: "Hot", icon: Flame },
@@ -94,6 +111,34 @@ export default function Home() {
                       variant="outline"
                       size="sm"
                       onClick={() => setSelectedSubreddit(null)}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-gray-300 hover:border-gray-400"
+                    >
+                      View All Posts
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {showUserPosts && user && (
+                <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                        <User className="h-5 w-5 text-white" />
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          My Posts
+                        </h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          Posts created by you
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowUserPosts(false)}
                       className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-gray-300 hover:border-gray-400"
                     >
                       View All Posts
@@ -180,6 +225,7 @@ export default function Home() {
           <Sidebar 
             selectedSubreddit={selectedSubreddit}
             onSubredditSelect={setSelectedSubreddit}
+            onShowUserPosts={handleShowUserPosts}
           />
         </div>
       </div>
