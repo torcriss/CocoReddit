@@ -28,7 +28,10 @@ export default function Header({ onSearch, viewMode = "home", onViewModeChange }
           <div className="flex items-center justify-between h-14">
             {/* Logo and Navigation */}
             <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-2">
+              <div 
+                className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
+                onClick={() => onViewModeChange?.("home")}
+              >
                 <div className="w-8 h-8 bg-reddit-orange rounded-full flex items-center justify-center">
                   <span className="text-white font-bold text-sm">R</span>
                 </div>

@@ -101,6 +101,9 @@ RESTful API endpoints organized by resource:
 ```
 Changelog:
 - July 06, 2025. Initial setup
+- July 06, 2025. Integrated PostgreSQL database with persistent storage
+- July 06, 2025. Implemented Popular/Home navigation with visual indicators
+- July 06, 2025. Made logo clickable to navigate to home view
 ```
 
 ## User Preferences
