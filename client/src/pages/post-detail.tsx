@@ -431,7 +431,7 @@ export default function PostDetail() {
                   disabled={saveMutation.isPending}
                   className={`flex items-center space-x-1 text-xs hover:bg-gray-100 dark:hover:bg-reddit-dark ${
                     (optimisticSaved !== null ? optimisticSaved : !!isSaved) 
-                      ? 'text-orange-500 dark:text-orange-400' 
+                      ? 'text-red-500 dark:text-red-400' 
                       : 'text-gray-500 dark:text-gray-400'
                   }`}
                 >

@@ -133,6 +133,7 @@ Changelog:
 - July 06, 2025. Fixed Recent Comments styling to exactly match Recent Posts: post titles now use h3 element with proper font weight and comment text is smaller (text-xs)
 - July 06, 2025. Added comment focusing: clicking Recent Comments navigates to post and scrolls to specific comment with temporary blue ring highlight
 - July 06, 2025. Improved navigation UX: posts/comments accessed from User Profile now show "Back to Profile" instead of "Back to Home" button
+- July 06, 2025. Changed Saved button styling from orange to red for better visual distinction
 ```
 
 ## User Preferences
