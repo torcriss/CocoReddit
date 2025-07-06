@@ -6,6 +6,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 import type { Comment } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { isUnauthorizedError } from "@/lib/authUtils";
 
 interface CommentThreadProps {
   postId: number;
@@ -19,11 +22,13 @@ interface CommentItemProps {
 function CommentItem({ comment, onReply }: CommentItemProps) {
   const [userVote, setUserVote] = useState<number | null>(null);
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
 
   const voteMutation = useMutation({
     mutationFn: async (voteType: number) => {
       return apiRequest("POST", "/api/votes", {
-        userId: "anonymous",
+        userId: "user", // Server will get user from session
         commentId: comment.id,
         voteType,
       });
@@ -31,9 +36,39 @@ function CommentItem({ comment, onReply }: CommentItemProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts", comment.postId, "comments"] });
     },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Login Required",
+          description: "You need to login to vote on comments",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to vote. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleVote = (voteType: number) => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "You need to login to vote on comments",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+
     if (userVote === voteType) {
       setUserVote(null);
     } else {
@@ -58,7 +93,7 @@ function CommentItem({ comment, onReply }: CommentItemProps) {
   const avatarColor = avatarColors[comment.id % avatarColors.length];
 
   return (
-    <div className={comment.depth > 0 ? "comment-line" : ""}>
+    <div className={(comment.depth || 0) > 0 ? "comment-line" : ""}>
       <div className="flex space-x-3">
         <div className="flex-shrink-0">
           <div className={`w-8 h-8 ${avatarColor} rounded-full flex items-center justify-center`}>
@@ -111,14 +146,16 @@ function CommentItem({ comment, onReply }: CommentItemProps) {
                 <ChevronDown className="w-4 h-4" />
               </Button>
             </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onReply(comment.id)}
-              className="text-xs text-gray-500 dark:text-gray-400 hover:text-reddit-blue font-medium"
-            >
-              Reply
-            </Button>
+            {isAuthenticated && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onReply(comment.id)}
+                className="text-xs text-gray-500 dark:text-gray-400 hover:text-reddit-blue font-medium"
+              >
+                Reply
+              </Button>
+            )}
           </div>
         </div>
       </div>
@@ -131,6 +168,8 @@ export default function CommentThread({ postId }: CommentThreadProps) {
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyContent, setReplyContent] = useState("");
   const queryClient = useQueryClient();
+  const { user, isAuthenticated } = useAuth();
+  const { toast } = useToast();
 
   const { data: comments = [] } = useQuery<Comment[]>({
     queryKey: ["/api/posts", postId, "comments"],
@@ -145,7 +184,7 @@ export default function CommentThread({ postId }: CommentThreadProps) {
     mutationFn: async (commentData: { content: string; parentId?: number }) => {
       return apiRequest("POST", "/api/comments", {
         content: commentData.content,
-        authorUsername: "anonymous",
+        authorUsername: user?.firstName || user?.email || "anonymous",
         postId,
         parentId: commentData.parentId,
       });
@@ -157,15 +196,57 @@ export default function CommentThread({ postId }: CommentThreadProps) {
       setReplyContent("");
       setReplyingTo(null);
     },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Login Required",
+          description: "You need to login to add comments",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to add comment. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleSubmitComment = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "You need to login to add comments",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+
     if (newComment.trim()) {
       commentMutation.mutate({ content: newComment });
     }
   };
 
   const handleSubmitReply = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "You need to login to reply to comments",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+
     if (replyContent.trim() && replyingTo) {
       commentMutation.mutate({ content: replyContent, parentId: replyingTo });
     }
@@ -231,7 +312,7 @@ export default function CommentThread({ postId }: CommentThreadProps) {
       
       {comment.replies.length > 0 && (
         <div className="space-y-4">
-          {comment.replies.map(renderComment)}
+          {comment.replies.map((reply) => renderComment(reply as Comment & { replies: Comment[] }))}
         </div>
       )}
     </div>
@@ -241,24 +322,38 @@ export default function CommentThread({ postId }: CommentThreadProps) {
 
   return (
     <div>
-      <div className="mb-4">
-        <Textarea
-          placeholder="Add a comment..."
-          value={newComment}
-          onChange={(e) => setNewComment(e.target.value)}
-          className="w-full resize-none focus:ring-2 focus:ring-reddit-blue focus:border-transparent"
-          rows={3}
-        />
-        <div className="flex justify-end mt-2">
+      {isAuthenticated ? (
+        <div className="mb-4">
+          <Textarea
+            placeholder="Add a comment..."
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            className="w-full resize-none focus:ring-2 focus:ring-reddit-blue focus:border-transparent"
+            rows={3}
+          />
+          <div className="flex justify-end mt-2">
+            <Button
+              onClick={handleSubmitComment}
+              disabled={!newComment.trim() || commentMutation.isPending}
+              className="bg-reddit-blue text-white hover:bg-reddit-blue/90"
+            >
+              Comment
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div className="mb-4 p-4 bg-gray-100 dark:bg-gray-800 rounded-lg text-center">
+          <p className="text-gray-600 dark:text-gray-400 mb-2">
+            Login to add comments and join the discussion
+          </p>
           <Button
-            onClick={handleSubmitComment}
-            disabled={!newComment.trim() || commentMutation.isPending}
+            onClick={() => window.location.href = "/api/login"}
             className="bg-reddit-blue text-white hover:bg-reddit-blue/90"
           >
-            Comment
+            Login
           </Button>
         </div>
-      </div>
+      )}
 
       <div className="space-y-4">
         {organizedComments.map(renderComment)}

@@ -31,7 +31,10 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { apiRequest } from "@/lib/queryClient";
 import { insertPostSchema } from "@shared/schema";
-import type { Subreddit } from "@shared/schema";
+import type { Subreddit, User } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { isUnauthorizedError } from "@/lib/authUtils";
 
 interface CreatePostDialogProps {
   open: boolean;
@@ -45,6 +48,8 @@ const formSchema = insertPostSchema.extend({
 export default function CreatePostDialog({ open, onOpenChange }: CreatePostDialogProps) {
   const [postType, setPostType] = useState<"text" | "link" | "image">("text");
   const queryClient = useQueryClient();
+  const { user, isAuthenticated } = useAuth();
+  const { toast } = useToast();
 
   const { data: subreddits = [] } = useQuery<Subreddit[]>({
     queryKey: ["/api/subreddits"],
@@ -57,7 +62,7 @@ export default function CreatePostDialog({ open, onOpenChange }: CreatePostDialo
       content: "",
       imageUrl: "",
       linkUrl: "",
-      authorUsername: "anonymous",
+      authorUsername: user?.firstName || user?.email || "anonymous",
       subredditId: undefined,
       type: "text",
     },
@@ -79,6 +84,24 @@ export default function CreatePostDialog({ open, onOpenChange }: CreatePostDialo
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
       form.reset();
       onOpenChange(false);
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to create post. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
@@ -156,6 +179,7 @@ export default function CreatePostDialog({ open, onOpenChange }: CreatePostDialo
                           placeholder="What are your thoughts?"
                           rows={6}
                           {...field}
+                          value={field.value || ""}
                         />
                       </FormControl>
                       <FormMessage />
@@ -172,7 +196,7 @@ export default function CreatePostDialog({ open, onOpenChange }: CreatePostDialo
                     <FormItem>
                       <FormLabel>Image URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://example.com/image.jpg" {...field} />
+                        <Input placeholder="https://example.com/image.jpg" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -188,7 +212,7 @@ export default function CreatePostDialog({ open, onOpenChange }: CreatePostDialo
                     <FormItem>
                       <FormLabel>URL</FormLabel>
                       <FormControl>
-                        <Input placeholder="https://example.com" {...field} />
+                        <Input placeholder="https://example.com" {...field} value={field.value || ""} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

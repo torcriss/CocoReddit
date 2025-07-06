@@ -9,6 +9,9 @@ import { formatDistanceToNow } from "date-fns";
 import CommentThread from "./CommentThread";
 import ShareDialog from "./ShareDialog";
 import type { Post } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { isUnauthorizedError } from "@/lib/authUtils";
 
 interface PostCardProps {
   post: Post;
@@ -19,11 +22,13 @@ export default function PostCard({ post }: PostCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const queryClient = useQueryClient();
+  const { isAuthenticated } = useAuth();
+  const { toast } = useToast();
 
   const voteMutation = useMutation({
     mutationFn: async (voteType: number) => {
       return apiRequest("POST", "/api/votes", {
-        userId: "anonymous",
+        userId: "user", // Server will get user from session
         postId: post.id,
         voteType,
       });
@@ -31,9 +36,39 @@ export default function PostCard({ post }: PostCardProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
     },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Login Required",
+          description: "You need to login to vote on posts",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to vote. Please try again.",
+        variant: "destructive",
+      });
+    },
   });
 
   const handleVote = (voteType: number) => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "You need to login to vote on posts",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+
     if (userVote === voteType) {
       setUserVote(null);
       // This would remove the vote

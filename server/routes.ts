@@ -2,8 +2,23 @@ import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertPostSchema, insertCommentSchema, insertVoteSchema, insertSubredditSchema } from "@shared/schema";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Auth middleware
+  await setupAuth(app);
+
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
   // Subreddits
   app.get("/api/subreddits", async (req, res) => {
     try {
@@ -14,7 +29,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/subreddits", async (req, res) => {
+  app.post("/api/subreddits", isAuthenticated, async (req, res) => {
     try {
       const validatedData = insertSubredditSchema.parse(req.body);
       const subreddit = await storage.createSubreddit(validatedData);
@@ -57,7 +72,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/posts", async (req, res) => {
+  app.post("/api/posts", isAuthenticated, async (req, res) => {
     try {
       const validatedData = insertPostSchema.parse(req.body);
       const post = await storage.createPost(validatedData);
@@ -104,7 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/comments", async (req, res) => {
+  app.post("/api/comments", isAuthenticated, async (req, res) => {
     try {
       const validatedData = insertCommentSchema.parse(req.body);
       const comment = await storage.createComment(validatedData);
@@ -141,30 +156,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Votes
-  app.post("/api/votes", async (req, res) => {
+  app.post("/api/votes", isAuthenticated, async (req: any, res) => {
     try {
-      const validatedData = insertVoteSchema.parse(req.body);
+      const userId = req.user.claims.sub;
+      const { postId, commentId, voteType } = req.body;
       
       // Check if user already voted
       const existingVote = await storage.getVote(
-        validatedData.userId,
-        validatedData.postId || undefined,
-        validatedData.commentId || undefined
+        userId,
+        postId || undefined,
+        commentId || undefined
       );
 
       if (existingVote) {
-        if (existingVote.voteType === validatedData.voteType) {
+        if (existingVote.voteType === voteType) {
           // Same vote - remove it
           await storage.deleteVote(existingVote.id);
           res.status(204).send();
         } else {
           // Different vote - update it
-          const updatedVote = await storage.updateVote(existingVote.id, validatedData.voteType);
+          const updatedVote = await storage.updateVote(existingVote.id, voteType);
           res.json(updatedVote);
         }
       } else {
         // New vote
-        const vote = await storage.createVote(validatedData);
+        const vote = await storage.createVote({
+          userId,
+          postId,
+          commentId,
+          voteType,
+        });
         res.status(201).json(vote);
       }
     } catch (error) {

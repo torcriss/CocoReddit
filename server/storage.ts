@@ -3,10 +3,13 @@ import {
   posts, 
   comments, 
   votes,
+  users,
   type Subreddit, 
   type Post, 
   type Comment, 
   type Vote,
+  type User,
+  type UpsertUser,
   type InsertSubreddit, 
   type InsertPost, 
   type InsertComment, 
@@ -16,6 +19,11 @@ import { db } from "./db";
 import { eq, like, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
+  // User operations
+  // (IMPORTANT) these user operations are mandatory for Replit Auth.
+  getUser(id: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+
   // Subreddits
   getSubreddits(): Promise<Subreddit[]>;
   getSubreddit(id: number): Promise<Subreddit | undefined>;
@@ -44,6 +52,28 @@ export interface IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // User operations
+  // (IMPORTANT) these user operations are mandatory for Replit Auth.
+  async getUser(id: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user;
+  }
+
+  async upsertUser(userData: UpsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(userData)
+      .onConflictDoUpdate({
+        target: users.id,
+        set: {
+          ...userData,
+          updatedAt: new Date(),
+        },
+      })
+      .returning();
+    return user;
+  }
+
   async getSubreddits(): Promise<Subreddit[]> {
     return await db.select().from(subreddits).orderBy(desc(subreddits.memberCount));
   }
@@ -66,22 +96,25 @@ export class DatabaseStorage implements IStorage {
 
   // Posts
   async getPosts(subredditId?: number, sortBy: string = "hot"): Promise<Post[]> {
-    let query = db.select().from(posts);
-    
-    if (subredditId) {
-      query = query.where(eq(posts.subredditId, subredditId));
-    }
-
     // Apply sorting
     switch (sortBy) {
       case "new":
-        return await query.orderBy(desc(posts.createdAt));
+        if (subredditId) {
+          return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(desc(posts.createdAt));
+        }
+        return await db.select().from(posts).orderBy(desc(posts.createdAt));
       case "top":
-        return await query.orderBy(desc(posts.votes));
+        if (subredditId) {
+          return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(desc(posts.votes));
+        }
+        return await db.select().from(posts).orderBy(desc(posts.votes));
       case "hot":
       default:
         // Simple hot algorithm: order by votes + comment count
-        return await query.orderBy(desc(posts.votes), desc(posts.commentCount));
+        if (subredditId) {
+          return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(desc(posts.votes), desc(posts.commentCount));
+        }
+        return await db.select().from(posts).orderBy(desc(posts.votes), desc(posts.commentCount));
     }
   }
 
