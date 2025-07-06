@@ -63,8 +63,8 @@ export default function PostDetail() {
       });
     },
     onSuccess: () => {
+      // Only invalidate the specific post, not the posts list to prevent reordering
       queryClient.invalidateQueries({ queryKey: ["/api/posts", id] });
-      queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {

@@ -111,7 +111,7 @@ export default function PostCard({ post }: PostCardProps) {
       return { previousVote, previousVotes };
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
+      // Only invalidate vote-related queries, not the posts list to prevent reordering
       queryClient.invalidateQueries({ queryKey: ["/api/votes/user", post.id] });
     },
     onError: (error, variables, context) => {
