@@ -169,6 +169,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Votes
+  app.get("/api/votes/user/:postId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const postId = parseInt(req.params.postId);
+      
+      const vote = await storage.getVote(userId, postId);
+      res.json(vote);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch user vote" });
+    }
+  });
+
   app.post("/api/votes", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.claims.sub;

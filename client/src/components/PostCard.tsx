@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { MessageCircle, Share, Bookmark, ChevronUp, ChevronDown } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { MessageCircle, Share, Bookmark, ChevronUp, ChevronDown, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -20,25 +20,89 @@ interface PostCardProps {
 
 export default function PostCard({ post }: PostCardProps) {
   const [userVote, setUserVote] = useState<number | null>(null);
+  const [optimisticVotes, setOptimisticVotes] = useState(post.votes || 0);
   const [showComments, setShowComments] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
+
+  // Fetch user's current vote for this post
+  const { data: currentVote } = useQuery({
+    queryKey: ["/api/votes/user", post.id],
+    queryFn: async () => {
+      if (!isAuthenticated || !user) return null;
+      try {
+        const response = await fetch(`/api/votes/user/${post.id}`);
+        if (response.ok) {
+          const vote = await response.json();
+          return vote?.voteType || null;
+        }
+      } catch (error) {
+        // Ignore error, just return null
+      }
+      return null;
+    },
+    enabled: isAuthenticated && !!user,
+  });
+
+  // Update local state when vote data is fetched
+  useEffect(() => {
+    if (currentVote !== undefined) {
+      setUserVote(currentVote);
+    }
+  }, [currentVote]);
+
+  // Update optimistic votes when post changes
+  useEffect(() => {
+    setOptimisticVotes(post.votes || 0);
+  }, [post.votes]);
 
   const voteMutation = useMutation({
     mutationFn: async (voteType: number) => {
       return apiRequest("POST", "/api/votes", {
-        userId: "user", // Server will get user from session
         postId: post.id,
         voteType,
       });
     },
+    onMutate: async (voteType: number) => {
+      // Optimistic update
+      const previousVote = userVote;
+      const previousVotes = optimisticVotes;
+      
+      // Calculate new vote value and count
+      let newVoteCount = optimisticVotes;
+      if (previousVote === voteType) {
+        // Removing vote
+        setUserVote(null);
+        newVoteCount = optimisticVotes - voteType;
+      } else if (previousVote === null) {
+        // Adding new vote
+        setUserVote(voteType);
+        newVoteCount = optimisticVotes + voteType;
+      } else {
+        // Changing vote
+        setUserVote(voteType);
+        newVoteCount = optimisticVotes - previousVote + voteType;
+      }
+      
+      setOptimisticVotes(newVoteCount);
+      
+      // Return context for rollback
+      return { previousVote, previousVotes };
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/votes/user", post.id] });
     },
-    onError: (error) => {
+    onError: (error, variables, context) => {
+      // Rollback optimistic updates
+      if (context) {
+        setUserVote(context.previousVote);
+        setOptimisticVotes(context.previousVotes);
+      }
+      
       if (isUnauthorizedError(error)) {
         toast({
           title: "Login Required",
@@ -71,13 +135,10 @@ export default function PostCard({ post }: PostCardProps) {
       return;
     }
 
-    if (userVote === voteType) {
-      setUserVote(null);
-      // This would remove the vote
-    } else {
-      setUserVote(voteType);
-      voteMutation.mutate(voteType);
-    }
+    // Don't allow voting while mutation is pending
+    if (voteMutation.isPending) return;
+
+    voteMutation.mutate(voteType);
   };
 
   const formatTimeAgo = (date: Date | string | null) => {
@@ -98,32 +159,46 @@ export default function PostCard({ post }: PostCardProps) {
             variant="ghost"
             size="sm"
             onClick={() => handleVote(1)}
-            className={`p-1 ${
+            disabled={voteMutation.isPending}
+            className={`p-1 transition-all duration-200 ${
               userVote === 1 
-                ? "text-reddit-orange bg-reddit-orange/10" 
-                : "text-gray-400 hover:text-reddit-orange hover:bg-gray-100 dark:hover:bg-reddit-darker"
+                ? "text-reddit-orange bg-reddit-orange/20 border border-reddit-orange/30" 
+                : "text-gray-400 hover:text-reddit-orange hover:bg-reddit-orange/10"
+            } ${
+              voteMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
-            <ChevronUp className="h-5 w-5" />
+            {voteMutation.isPending && userVote === 1 ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <ChevronUp className="h-5 w-5" />
+            )}
           </Button>
-          <span className={`text-sm font-bold py-1 ${
+          <span className={`text-sm font-bold py-1 transition-colors duration-200 ${
             userVote === 1 ? "text-reddit-orange" : 
             userVote === -1 ? "text-blue-500" : 
             "text-gray-900 dark:text-white"
           }`}>
-            {post.votes || 0}
+            {optimisticVotes}
           </span>
           <Button
             variant="ghost"
             size="sm"
             onClick={() => handleVote(-1)}
-            className={`p-1 ${
+            disabled={voteMutation.isPending}
+            className={`p-1 transition-all duration-200 ${
               userVote === -1 
-                ? "text-blue-500 bg-blue-500/10" 
-                : "text-gray-400 hover:text-blue-500 hover:bg-gray-100 dark:hover:bg-reddit-darker"
+                ? "text-blue-500 bg-blue-500/20 border border-blue-500/30" 
+                : "text-gray-400 hover:text-blue-500 hover:bg-blue-500/10"
+            } ${
+              voteMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
             }`}
           >
-            <ChevronDown className="h-5 w-5" />
+            {voteMutation.isPending && userVote === -1 ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              <ChevronDown className="h-5 w-5" />
+            )}
           </Button>
         </div>
 
