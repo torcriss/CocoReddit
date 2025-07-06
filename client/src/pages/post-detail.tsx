@@ -21,6 +21,7 @@ export default function PostDetail() {
   const { id } = useParams();
   const [userVote, setUserVote] = useState<number | null>(null);
   const [optimisticSaved, setOptimisticSaved] = useState<boolean | null>(null);
+  const [cameFromProfile, setCameFromProfile] = useState<boolean>(false);
 
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,6 +30,15 @@ export default function PostDetail() {
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
   const { isShared, setSharedPost } = useSharedState();
+
+  // Check if user came from profile page
+  useEffect(() => {
+    const fromProfile = localStorage.getItem('cameFromProfile');
+    if (fromProfile === 'true') {
+      setCameFromProfile(true);
+      localStorage.removeItem('cameFromProfile'); // Clean up
+    }
+  }, []);
 
   // Handle comment focus from URL hash
   useEffect(() => {
@@ -270,11 +280,11 @@ export default function PostDetail() {
           <div className="text-center py-8">
             <div className="text-gray-500 dark:text-gray-400">Post not found</div>
             <Button 
-              onClick={() => setLocation("/")}
+              onClick={() => cameFromProfile ? setLocation("/profile") : setLocation("/")}
               className="mt-4 bg-reddit-blue text-white hover:bg-reddit-blue/90"
             >
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Home
+              {cameFromProfile ? "Back to Profile" : "Back to Home"}
             </Button>
           </div>
         </div>
@@ -293,12 +303,12 @@ export default function PostDetail() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Back button */}
         <Button 
-          onClick={() => setLocation("/")}
+          onClick={() => cameFromProfile ? setLocation("/profile") : setLocation("/")}
           variant="ghost"
           className="mb-4 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Home
+          {cameFromProfile ? "Back to Profile" : "Back to Home"}
         </Button>
 
         {/* Post Details */}

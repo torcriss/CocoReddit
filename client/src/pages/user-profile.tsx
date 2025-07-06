@@ -115,6 +115,8 @@ export default function UserProfile() {
   };
 
   const handlePostClick = (postId: number) => {
+    // Set a flag to indicate we came from profile
+    localStorage.setItem('cameFromProfile', 'true');
     setLocation(`/post/${postId}`);
   };
 
@@ -308,7 +310,12 @@ export default function UserProfile() {
                     return (
                       <div
                         key={comment.id}
-                        onClick={() => comment.postId && setLocation(`/post/${comment.postId}#comment-${comment.id}`)}
+                        onClick={() => {
+                          if (comment.postId) {
+                            localStorage.setItem('cameFromProfile', 'true');
+                            setLocation(`/post/${comment.postId}#comment-${comment.id}`);
+                          }
+                        }}
                         className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors cursor-pointer"
                       >
                         {commentPost && getSubredditName(commentPost.subredditId ?? undefined) && (
