@@ -47,6 +47,24 @@ export default function PostCard({ post }: PostCardProps) {
     enabled: isAuthenticated && !!user,
   });
 
+  // Fetch subreddit information if post has a subredditId
+  const { data: subreddit } = useQuery({
+    queryKey: ["/api/subreddits", post.subredditId],
+    queryFn: async () => {
+      if (!post.subredditId) return null;
+      try {
+        const response = await fetch(`/api/subreddits/${post.subredditId}`);
+        if (response.ok) {
+          return await response.json();
+        }
+      } catch (error) {
+        // Ignore error, just return null
+      }
+      return null;
+    },
+    enabled: !!post.subredditId,
+  });
+
   // Update local state when vote data is fetched
   useEffect(() => {
     if (currentVote !== undefined) {
@@ -153,7 +171,9 @@ export default function PostCard({ post }: PostCardProps) {
     <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors overflow-hidden">
       <div className="p-4">
         <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-2">
-          <span className="font-medium text-gray-900 dark:text-white">r/general</span>
+          <span className="font-medium text-gray-900 dark:text-white">
+            r/{subreddit?.name || "general"}
+          </span>
           <span className="mx-1">•</span>
           <span>Posted by u/{post.authorUsername}</span>
           <span className="mx-1">•</span>
