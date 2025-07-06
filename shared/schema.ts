@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb, index } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, varchar, jsonb, index, unique } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -66,6 +66,15 @@ export const votes = pgTable("votes", {
   voteType: integer("vote_type").notNull(), // 1 for upvote, -1 for downvote
 });
 
+export const savedPosts = pgTable("saved_posts", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").notNull(),
+  postId: integer("post_id").references(() => posts.id, { onDelete: "cascade" }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+}, (table) => ({
+  userPostUnique: unique().on(table.userId, table.postId),
+}));
+
 export const insertSubredditSchema = createInsertSchema(subreddits).omit({
   id: true,
   memberCount: true,
@@ -90,6 +99,11 @@ export const insertVoteSchema = createInsertSchema(votes).omit({
   id: true,
 });
 
+export const insertSavedPostSchema = createInsertSchema(savedPosts).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const insertUserSchema = createInsertSchema(users).omit({
   createdAt: true,
   updatedAt: true,
@@ -102,8 +116,10 @@ export type InsertSubreddit = z.infer<typeof insertSubredditSchema>;
 export type InsertPost = z.infer<typeof insertPostSchema>;
 export type InsertComment = z.infer<typeof insertCommentSchema>;
 export type InsertVote = z.infer<typeof insertVoteSchema>;
+export type InsertSavedPost = z.infer<typeof insertSavedPostSchema>;
 
 export type Subreddit = typeof subreddits.$inferSelect;
 export type Post = typeof posts.$inferSelect;
 export type Comment = typeof comments.$inferSelect;
 export type Vote = typeof votes.$inferSelect;
+export type SavedPost = typeof savedPosts.$inferSelect;

@@ -3,17 +3,20 @@ import {
   posts, 
   comments, 
   votes,
+  savedPosts,
   users,
   type Subreddit, 
   type Post, 
   type Comment, 
   type Vote,
+  type SavedPost,
   type User,
   type UpsertUser,
   type InsertSubreddit, 
   type InsertPost, 
   type InsertComment, 
-  type InsertVote 
+  type InsertVote,
+  type InsertSavedPost
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, like, desc, and, sql } from "drizzle-orm";
@@ -49,6 +52,12 @@ export interface IStorage {
   createVote(vote: InsertVote): Promise<Vote>;
   updateVote(id: number, voteType: number): Promise<Vote | undefined>;
   deleteVote(id: number): Promise<boolean>;
+
+  // Saved Posts
+  getSavedPosts(userId: string): Promise<Post[]>;
+  getSavedPost(userId: string, postId: number): Promise<SavedPost | undefined>;
+  savePost(savedPost: InsertSavedPost): Promise<SavedPost>;
+  unsavePost(userId: string, postId: number): Promise<boolean>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -369,6 +378,59 @@ export class DatabaseStorage implements IStorage {
         .where(eq(comments.id, vote.commentId));
     }
 
+    return (result.rowCount || 0) > 0;
+  }
+
+  // Saved Posts
+  async getSavedPosts(userId: string): Promise<Post[]> {
+    const result = await db
+      .select({
+        id: posts.id,
+        title: posts.title,
+        content: posts.content,
+        imageUrl: posts.imageUrl,
+        linkUrl: posts.linkUrl,
+        authorUsername: posts.authorUsername,
+        subredditId: posts.subredditId,
+        votes: posts.votes,
+        commentCount: posts.commentCount,
+        createdAt: posts.createdAt,
+      })
+      .from(savedPosts)
+      .innerJoin(posts, eq(savedPosts.postId, posts.id))
+      .where(eq(savedPosts.userId, userId))
+      .orderBy(desc(savedPosts.createdAt));
+    
+    return result;
+  }
+
+  async getSavedPost(userId: string, postId: number): Promise<SavedPost | undefined> {
+    const [savedPost] = await db
+      .select()
+      .from(savedPosts)
+      .where(and(eq(savedPosts.userId, userId), eq(savedPosts.postId, postId)));
+    
+    return savedPost || undefined;
+  }
+
+  async savePost(insertSavedPost: InsertSavedPost): Promise<SavedPost> {
+    const [savedPost] = await db
+      .insert(savedPosts)
+      .values({
+        userId: insertSavedPost.userId,
+        postId: insertSavedPost.postId,
+      })
+      .onConflictDoNothing()
+      .returning();
+
+    return savedPost;
+  }
+
+  async unsavePost(userId: string, postId: number): Promise<boolean> {
+    const result = await db
+      .delete(savedPosts)
+      .where(and(eq(savedPosts.userId, userId), eq(savedPosts.postId, postId)));
+    
     return (result.rowCount || 0) > 0;
   }
 }

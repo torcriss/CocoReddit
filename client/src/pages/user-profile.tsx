@@ -31,6 +31,11 @@ export default function UserProfile() {
     enabled: posts.length > 0,
   });
 
+  const { data: savedPosts = [] } = useQuery<Post[]>({
+    queryKey: ["/api/saved-posts"],
+    enabled: isAuthenticated && !!user,
+  });
+
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark flex items-center justify-center">
@@ -140,7 +145,7 @@ export default function UserProfile() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Recent Posts */}
           <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
             <CardHeader>
@@ -211,6 +216,48 @@ export default function UserProfile() {
                           <span>{comment.votes || 0}</span>
                         </div>
                         <span>{formatTimeAgo(comment.createdAt)}</span>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Saved Posts */}
+          <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
+                Saved Posts ({savedPosts.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {savedPosts.length === 0 ? (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    No saved posts yet
+                  </div>
+                ) : (
+                  savedPosts.slice(0, 5).map((post) => (
+                    <div
+                      key={post.id}
+                      className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors"
+                    >
+                      <h3 className="font-medium text-gray-900 dark:text-white mb-2 line-clamp-2">
+                        {post.title}
+                      </h3>
+                      <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-1">
+                            <ChevronUp className="h-4 w-4" />
+                            <span>{post.votes || 0}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <MessageCircle className="h-4 w-4" />
+                            <span>{post.commentCount || 0}</span>
+                          </div>
+                        </div>
+                        <span>{formatTimeAgo(post.createdAt)}</span>
                       </div>
                     </div>
                   ))

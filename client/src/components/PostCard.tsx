@@ -62,6 +62,25 @@ export default function PostCard({ post }: PostCardProps) {
     enabled: !!post.subredditId,
   });
 
+  // Check if post is saved by the user
+  const { data: isSaved } = useQuery({
+    queryKey: ["/api/saved-posts", post.id],
+    queryFn: async () => {
+      if (!isAuthenticated || !user) return false;
+      try {
+        const response = await fetch(`/api/saved-posts/${post.id}`);
+        if (response.ok) {
+          const savedPost = await response.json();
+          return !!savedPost;
+        }
+      } catch (error) {
+        // Ignore error, just return false
+      }
+      return false;
+    },
+    enabled: isAuthenticated && !!user,
+  });
+
   // Update local state when vote data is fetched
   useEffect(() => {
     if (currentVote !== undefined) {
@@ -137,6 +156,42 @@ export default function PostCard({ post }: PostCardProps) {
     },
   });
 
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("POST", "/api/saved-posts", {
+        postId: post.id,
+      });
+    },
+    onSuccess: () => {
+      // Invalidate saved posts queries
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts", post.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
+      
+      toast({
+        title: isSaved ? "Post unsaved" : "Post saved",
+        description: isSaved ? "Removed from your saved posts" : "Added to your saved posts",
+      });
+    },
+    onError: (error: Error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Login Required",
+          description: "You need to login to save posts",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to save post. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleVote = (voteType: number) => {
     if (!isAuthenticated) {
       toast({
@@ -154,6 +209,25 @@ export default function PostCard({ post }: PostCardProps) {
     if (voteMutation.isPending) return;
 
     voteMutation.mutate(voteType);
+  };
+
+  const handleSave = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "You need to login to save posts",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+
+    // Don't allow saving while mutation is pending
+    if (saveMutation.isPending) return;
+
+    saveMutation.mutate();
   };
 
   const formatTimeAgo = (date: Date) => {
@@ -318,10 +392,20 @@ export default function PostCard({ post }: PostCardProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="flex items-center space-x-1 hover:bg-gray-100 dark:hover:bg-reddit-dark text-gray-500 dark:text-gray-400"
+            onClick={handleSave}
+            disabled={saveMutation.isPending}
+            className={`flex items-center space-x-1 hover:bg-gray-100 dark:hover:bg-reddit-dark ${
+              isSaved 
+                ? 'text-orange-500 dark:text-orange-400' 
+                : 'text-gray-500 dark:text-gray-400'
+            }`}
           >
-            <BookmarkPlus className="h-4 w-4" />
-            <span>Save</span>
+            {saveMutation.isPending ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <BookmarkPlus className="h-4 w-4" />
+            )}
+            <span>{isSaved ? 'Saved' : 'Save'}</span>
           </Button>
         </div>
       </div>

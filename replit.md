@@ -112,6 +112,9 @@ Changelog:
 - July 06, 2025. Added back button to User Profile page for easy homepage navigation
 - July 06, 2025. Removed About section from User Profile page for cleaner interface
 - July 06, 2025. Updated comment button behavior to navigate to post detail pages
+- July 06, 2025. Implemented Save button functionality for posts with database storage
+- July 06, 2025. Added Saved Posts section to User Profile page showing saved content
+- July 06, 2025. Save button shows orange color when saved and toggles save/unsave
 ```
 
 ## User Preferences

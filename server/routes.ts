@@ -218,6 +218,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Saved Posts routes
+  app.get("/api/saved-posts", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const savedPosts = await storage.getSavedPosts(userId);
+      res.json(savedPosts);
+    } catch (error) {
+      console.error("Error fetching saved posts:", error);
+      res.status(500).json({ error: "Failed to fetch saved posts" });
+    }
+  });
+
+  app.get("/api/saved-posts/:postId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const postId = parseInt(req.params.postId);
+      const savedPost = await storage.getSavedPost(userId, postId);
+      if (!savedPost) {
+        return res.status(200).json(null);
+      }
+      res.json(savedPost);
+    } catch (error) {
+      console.error("Error checking saved post:", error);
+      res.status(500).json({ error: "Failed to check saved post" });
+    }
+  });
+
+  app.post("/api/saved-posts", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const { postId } = req.body;
+      
+      // Check if already saved
+      const existingSavedPost = await storage.getSavedPost(userId, postId);
+      if (existingSavedPost) {
+        // If already saved, unsave it
+        await storage.unsavePost(userId, postId);
+        res.status(204).send();
+      } else {
+        // Save the post
+        const savedPost = await storage.savePost({ userId, postId });
+        res.status(201).json(savedPost);
+      }
+    } catch (error) {
+      console.error("Error saving/unsaving post:", error);
+      res.status(400).json({ error: "Failed to save/unsave post" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
