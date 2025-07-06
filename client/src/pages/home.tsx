@@ -241,54 +241,61 @@ export default function Home() {
                 </div>
               )}
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  {/* In popular mode, disable sort options and show only "Top" */}
-                  {viewMode === "popular" ? (
-                    <Button
-                      variant="default"
-                      size="sm"
-                      className="flex items-center space-x-2 bg-reddit-blue text-white hover:bg-reddit-blue/90"
-                    >
-                      <TrendingUp className="h-4 w-4" />
-                      <span>Top</span>
-                    </Button>
-                  ) : (
-                    sortOptions.map(({ key, label, icon: Icon }) => (
+                {/* Hide sort options when viewing user-specific content */}
+                {!showUserPosts && !showUserComments && (
+                  <div className="flex items-center space-x-4">
+                    {/* In popular mode, disable sort options and show only "Top" */}
+                    {viewMode === "popular" ? (
                       <Button
-                        key={key}
-                        variant={sortBy === key ? "default" : "ghost"}
+                        variant="default"
                         size="sm"
-                        onClick={() => setSortBy(key)}
-                        className={`flex items-center space-x-2 ${
-                          sortBy === key 
-                            ? "bg-reddit-blue text-white hover:bg-reddit-blue/90" 
-                            : "text-gray-700 dark:text-gray-300 hover:text-reddit-blue"
-                        }`}
+                        className="flex items-center space-x-2 bg-reddit-blue text-white hover:bg-reddit-blue/90"
                       >
-                        <Icon className="h-4 w-4" />
-                        <span>{label}</span>
+                        <TrendingUp className="h-4 w-4" />
+                        <span>Top</span>
                       </Button>
-                    ))
-                  )}
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Button 
-                    variant={layoutMode === "list" ? "default" : "ghost"} 
-                    size="sm"
-                    onClick={() => setLayoutMode("list")}
-                    className={layoutMode === "list" ? "bg-reddit-blue text-white hover:bg-reddit-blue/90" : ""}
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant={layoutMode === "grid" ? "default" : "ghost"} 
-                    size="sm"
-                    onClick={() => setLayoutMode("grid")}
-                    className={layoutMode === "grid" ? "bg-reddit-blue text-white hover:bg-reddit-blue/90" : ""}
-                  >
-                    <LayoutGrid className="h-4 w-4" />
-                  </Button>
-                </div>
+                    ) : (
+                      sortOptions.map(({ key, label, icon: Icon }) => (
+                        <Button
+                          key={key}
+                          variant={sortBy === key ? "default" : "ghost"}
+                          size="sm"
+                          onClick={() => setSortBy(key)}
+                          className={`flex items-center space-x-2 ${
+                            sortBy === key 
+                              ? "bg-reddit-blue text-white hover:bg-reddit-blue/90" 
+                              : "text-gray-700 dark:text-gray-300 hover:text-reddit-blue"
+                          }`}
+                        >
+                          <Icon className="h-4 w-4" />
+                          <span>{label}</span>
+                        </Button>
+                      ))
+                    )}
+                  </div>
+                )}
+                
+                {/* Layout controls - show for posts, hide for comments */}
+                {!showUserComments && (
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant={layoutMode === "list" ? "default" : "ghost"} 
+                      size="sm"
+                      onClick={() => setLayoutMode("list")}
+                      className={layoutMode === "list" ? "bg-reddit-blue text-white hover:bg-reddit-blue/90" : ""}
+                    >
+                      <List className="h-4 w-4" />
+                    </Button>
+                    <Button 
+                      variant={layoutMode === "grid" ? "default" : "ghost"} 
+                      size="sm"
+                      onClick={() => setLayoutMode("grid")}
+                      className={layoutMode === "grid" ? "bg-reddit-blue text-white hover:bg-reddit-blue/90" : ""}
+                    >
+                      <LayoutGrid className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
 
