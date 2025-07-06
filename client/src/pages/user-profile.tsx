@@ -55,6 +55,14 @@ export default function UserProfile() {
            post.authorUsername === user.firstName ||
            post.authorUsername === user.email;
   });
+  
+  // Recent posts from the platform (all posts, sorted by newest)
+  const recentPosts = [...posts].sort((a, b) => {
+    if (!a.createdAt && !b.createdAt) return 0;
+    if (!a.createdAt) return 1;
+    if (!b.createdAt) return -1;
+    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+  });
 
   const userComments = allComments.filter((comment: Comment) => {
     return comment.authorUsername === userIdentifier || 
@@ -150,17 +158,17 @@ export default function UserProfile() {
           <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
             <CardHeader>
               <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-                Recent Posts ({userPosts.length})
+                Recent Posts ({recentPosts.length})
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                {userPosts.length === 0 ? (
+                {recentPosts.length === 0 ? (
                   <div className="text-center py-8 text-gray-500 dark:text-gray-400">
                     No posts yet
                   </div>
                 ) : (
-                  userPosts.slice(0, 5).map((post) => (
+                  recentPosts.slice(0, 5).map((post) => (
                     <div
                       key={post.id}
                       className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors"
