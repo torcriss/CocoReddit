@@ -36,6 +36,24 @@ export default function PostDetail() {
     },
   });
 
+  // Fetch subreddit information if post has a subredditId
+  const { data: subreddit } = useQuery({
+    queryKey: ["/api/subreddits", post?.subredditId],
+    queryFn: async () => {
+      if (!post?.subredditId) return null;
+      try {
+        const response = await fetch(`/api/subreddits/${post.subredditId}`);
+        if (response.ok) {
+          return await response.json();
+        }
+      } catch (error) {
+        // Ignore error, just return null
+      }
+      return null;
+    },
+    enabled: !!post?.subredditId,
+  });
+
   const voteMutation = useMutation({
     mutationFn: async (voteType: number) => {
       return apiRequest("POST", "/api/votes", {
@@ -204,7 +222,9 @@ export default function PostDetail() {
             {/* Post Content */}
             <div className="flex-1 p-6">
               <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-3">
-                <span className="font-medium text-gray-900 dark:text-white">r/general</span>
+                <span className="font-medium text-gray-900 dark:text-white">
+                  r/{subreddit?.name || "general"}
+                </span>
                 <span className="mx-1">•</span>
                 <span>Posted by u/{post.authorUsername}</span>
                 <span className="mx-1">•</span>
