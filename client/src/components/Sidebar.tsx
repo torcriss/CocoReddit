@@ -4,7 +4,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CreatePostDialog from "./CreatePostDialog";
-import type { Subreddit } from "@shared/schema";
+import type { Subreddit, Post, Comment } from "@shared/schema";
 
 interface SidebarProps {
   selectedSubreddit?: number | null;
@@ -17,6 +17,15 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   const { data: subreddits = [] } = useQuery<Subreddit[]>({
     queryKey: ["/api/subreddits"],
   });
+
+  // Get all posts to count them
+  const { data: posts = [] } = useQuery<Post[]>({
+    queryKey: ["/api/posts"],
+  });
+
+  // Calculate total comment count from all posts
+  const totalComments = posts.reduce((total, post) => total + (post.commentCount || 0), 0);
+  const totalPosts = posts.length;
 
   const communityColors = [
     "bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500",
@@ -126,11 +135,11 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
               </p>
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div>
-                  <div className="font-semibold text-gray-900 dark:text-white">0</div>
+                  <div className="font-semibold text-gray-900 dark:text-white">{totalPosts}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">Posts</div>
                 </div>
                 <div>
-                  <div className="font-semibold text-gray-900 dark:text-white">0</div>
+                  <div className="font-semibold text-gray-900 dark:text-white">{totalComments}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">Comments</div>
                 </div>
               </div>
