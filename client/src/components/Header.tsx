@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { Search, Plus, Moon, Sun, Home, Bookmark, LogIn, LogOut } from "lucide-react";
+import { Search, Plus, Moon, Sun, Home, Bookmark, LogIn, LogOut, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useTheme } from "./ThemeProvider";
 import CreatePostDialog from "./CreatePostDialog";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +12,8 @@ interface HeaderProps {
   onSearch: (query: string) => void;
   viewMode?: "home" | "popular";
   onViewModeChange?: (mode: "home" | "popular") => void;
+  sortBy?: string;
+  onSortByChange?: (sort: string) => void;
 }
 
 export default function Header({ onSearch, viewMode = "home", onViewModeChange }: HeaderProps) {

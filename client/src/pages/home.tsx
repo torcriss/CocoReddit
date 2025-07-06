@@ -22,42 +22,69 @@ export default function Home() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
 
-  const { data: posts = [], isLoading } = useQuery<Post[]>({
-    queryKey: ["/api/posts", { sortBy, search: searchQuery, viewMode, subredditId: selectedSubreddit, showUserPosts }],
+  const { data: allPosts = [], isLoading } = useQuery<Post[]>({
+    queryKey: ["/api/posts"],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      // In popular mode, force "top" sorting and show all posts
-      const effectiveSort = viewMode === "popular" ? "top" : sortBy;
-      params.append("sortBy", effectiveSort);
-      if (searchQuery) params.append("search", searchQuery);
-      if (selectedSubreddit) params.append("subredditId", selectedSubreddit.toString());
-      
-      const response = await fetch(`/api/posts?${params}`);
+      const response = await fetch("/api/posts?sortBy=hot");
       if (!response.ok) throw new Error("Failed to fetch posts");
-      const allPosts = await response.json();
-      
-      // Filter by user posts if showUserPosts is true
-      if (showUserPosts && user) {
-        console.log("Current user object:", user);
-        const userIdentifier = user.firstName || user.email || "anonymous";
-        console.log("Filtering posts for user:", userIdentifier);
-        console.log("Available posts:", allPosts.map(p => ({ id: p.id, title: p.title, author: p.authorUsername })));
-        
-        // Try multiple possible matches since posts might be created with different identifiers
-        const filteredPosts = allPosts.filter((post: Post) => {
-          return post.authorUsername === userIdentifier || 
-                 post.authorUsername === user.firstName ||
-                 post.authorUsername === user.email ||
-                 post.authorUsername === (user.firstName || user.email);
-        });
-        
-        console.log("Filtered posts:", filteredPosts);
-        return filteredPosts;
-      }
-      
-      return allPosts;
+      return response.json();
     },
   });
+
+  // Client-side filtering and sorting to prevent dynamic reloading
+  const filteredAndSortedPosts = (() => {
+    let posts = [...allPosts];
+    
+    // Apply search filter
+    if (searchQuery) {
+      posts = posts.filter((post: Post) => 
+        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (post.content && post.content.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+    }
+    
+    // Apply subreddit filter
+    if (selectedSubreddit) {
+      posts = posts.filter((post: Post) => post.subredditId === selectedSubreddit);
+    }
+    
+    // Apply user posts filter
+    if (showUserPosts && user) {
+      const userIdentifier = user.firstName || user.email || "anonymous";
+      posts = posts.filter((post: Post) => {
+        return post.authorUsername === userIdentifier || 
+               post.authorUsername === user.firstName ||
+               post.authorUsername === user.email ||
+               post.authorUsername === (user.firstName || user.email);
+      });
+    }
+    
+    // Apply sorting
+    switch (sortBy) {
+      case "new":
+        posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+        break;
+      case "top":
+        posts.sort((a, b) => (b.votes || 0) - (a.votes || 0));
+        break;
+      case "hot":
+      default:
+        // Hot algorithm: combine votes and time
+        posts.sort((a, b) => {
+          const aScore = (a.votes || 0) + (Math.max(0, 24 - ((Date.now() - new Date(a.createdAt).getTime()) / (1000 * 60 * 60))) * 0.1);
+          const bScore = (b.votes || 0) + (Math.max(0, 24 - ((Date.now() - new Date(b.createdAt).getTime()) / (1000 * 60 * 60))) * 0.1);
+          return bScore - aScore;
+        });
+        break;
+    }
+    
+    // In popular mode, show only posts with high votes
+    if (viewMode === "popular") {
+      posts = posts.filter((post: Post) => (post.votes || 0) >= 1);
+    }
+    
+    return posts;
+  })();
 
   // Get all subreddits to find the selected one
   const { data: subreddits = [] } = useQuery({
@@ -340,14 +367,14 @@ export default function Home() {
                   <div className="text-center py-8 col-span-full">
                     <div className="text-gray-500 dark:text-gray-400">Loading posts...</div>
                   </div>
-                ) : posts.length === 0 ? (
+                ) : filteredAndSortedPosts.length === 0 ? (
                   <div className="text-center py-8 col-span-full">
                     <div className="text-gray-500 dark:text-gray-400">
                       {searchQuery ? "No posts found matching your search." : "No posts yet. Be the first to create one!"}
                     </div>
                   </div>
                 ) : (
-                  posts.map((post) => (
+                  filteredAndSortedPosts.map((post) => (
                     <PostCard key={post.id} post={post} />
                   ))
                 )}
