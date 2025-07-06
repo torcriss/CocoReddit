@@ -12,6 +12,8 @@ import {
   type InsertComment, 
   type InsertVote 
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, like, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
   // Subreddits
@@ -41,344 +43,289 @@ export interface IStorage {
   deleteVote(id: number): Promise<boolean>;
 }
 
-export class MemStorage implements IStorage {
-  private subreddits: Map<number, Subreddit>;
-  private posts: Map<number, Post>;
-  private comments: Map<number, Comment>;
-  private votes: Map<number, Vote>;
-  private currentSubredditId: number;
-  private currentPostId: number;
-  private currentCommentId: number;
-  private currentVoteId: number;
-
-  constructor() {
-    this.subreddits = new Map();
-    this.posts = new Map();
-    this.comments = new Map();
-    this.votes = new Map();
-    this.currentSubredditId = 1;
-    this.currentPostId = 1;
-    this.currentCommentId = 1;
-    this.currentVoteId = 1;
-
-    // Initialize with some default subreddits
-    this.initializeDefaultData();
-  }
-
-  private initializeDefaultData() {
-    const defaultSubreddits = [
-      { name: "webdev", description: "Web development discussions", memberCount: 2100000 },
-      { name: "programming", description: "Programming topics and tutorials", memberCount: 4200000 },
-      { name: "askreddit", description: "Ask and answer questions", memberCount: 34200000 },
-    ];
-
-    defaultSubreddits.forEach(sub => {
-      const subreddit: Subreddit = {
-        id: this.currentSubredditId++,
-        name: sub.name,
-        description: sub.description,
-        memberCount: sub.memberCount,
-        createdAt: new Date(),
-      };
-      this.subreddits.set(subreddit.id, subreddit);
-    });
-
-    // Add some sample posts to demonstrate features
-    const samplePosts = [
-      {
-        title: "Welcome to your personal Reddit clone!",
-        content: "This is your personal space for organizing thoughts, ideas, and discussions. Feel free to create posts, comment, and organize content in subreddits.",
-        authorUsername: "admin",
-        subredditId: 1,
-      },
-      {
-        title: "How to use the share feature",
-        content: "Click the share button on any post to share it via social media, email, or copy the link to clipboard. Perfect for sharing interesting content with friends!",
-        authorUsername: "admin",
-        subredditId: 1,
-      }
-    ];
-
-    samplePosts.forEach(postData => {
-      const post: Post = {
-        id: this.currentPostId++,
-        title: postData.title,
-        content: postData.content,
-        imageUrl: null,
-        linkUrl: null,
-        authorUsername: postData.authorUsername,
-        subredditId: postData.subredditId,
-        votes: Math.floor(Math.random() * 20) + 5,
-        commentCount: 0,
-        createdAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000), // Random time in last 24h
-      };
-      this.posts.set(post.id, post);
-    });
-  }
-
-  // Subreddits
+export class DatabaseStorage implements IStorage {
   async getSubreddits(): Promise<Subreddit[]> {
-    return Array.from(this.subreddits.values());
+    return await db.select().from(subreddits).orderBy(desc(subreddits.memberCount));
   }
 
   async getSubreddit(id: number): Promise<Subreddit | undefined> {
-    return this.subreddits.get(id);
+    const [subreddit] = await db.select().from(subreddits).where(eq(subreddits.id, id));
+    return subreddit || undefined;
   }
 
   async createSubreddit(insertSubreddit: InsertSubreddit): Promise<Subreddit> {
-    const subreddit: Subreddit = {
-      id: this.currentSubredditId++,
-      name: insertSubreddit.name,
-      description: insertSubreddit.description || null,
-      memberCount: 0,
-      createdAt: new Date(),
-    };
-    this.subreddits.set(subreddit.id, subreddit);
+    const [subreddit] = await db
+      .insert(subreddits)
+      .values({
+        name: insertSubreddit.name,
+        description: insertSubreddit.description || null,
+      })
+      .returning();
     return subreddit;
   }
 
   // Posts
   async getPosts(subredditId?: number, sortBy: string = "hot"): Promise<Post[]> {
-    let postsArray = Array.from(this.posts.values());
+    let query = db.select().from(posts);
     
     if (subredditId) {
-      postsArray = postsArray.filter(post => post.subredditId === subredditId);
+      query = query.where(eq(posts.subredditId, subredditId));
     }
 
-    // Sort posts
+    // Apply sorting
     switch (sortBy) {
       case "new":
-        postsArray.sort((a, b) => new Date(b.createdAt!).getTime() - new Date(a.createdAt!).getTime());
-        break;
+        return await query.orderBy(desc(posts.createdAt));
       case "top":
-        postsArray.sort((a, b) => (b.votes || 0) - (a.votes || 0));
-        break;
+        return await query.orderBy(desc(posts.votes));
       case "hot":
       default:
-        // Simple hot algorithm: combine votes and recency
-        postsArray.sort((a, b) => {
-          const aScore = (a.votes || 0) + (a.commentCount || 0) * 2;
-          const bScore = (b.votes || 0) + (b.commentCount || 0) * 2;
-          return bScore - aScore;
-        });
-        break;
+        // Simple hot algorithm: order by votes + comment count
+        return await query.orderBy(desc(posts.votes), desc(posts.commentCount));
     }
-
-    return postsArray;
   }
 
   async getPost(id: number): Promise<Post | undefined> {
-    return this.posts.get(id);
+    const [post] = await db.select().from(posts).where(eq(posts.id, id));
+    return post || undefined;
   }
 
   async createPost(insertPost: InsertPost): Promise<Post> {
-    const post: Post = {
-      id: this.currentPostId++,
-      title: insertPost.title,
-      content: insertPost.content || null,
-      imageUrl: insertPost.imageUrl || null,
-      linkUrl: insertPost.linkUrl || null,
-      authorUsername: insertPost.authorUsername,
-      subredditId: insertPost.subredditId || null,
-      votes: 0,
-      commentCount: 0,
-      createdAt: new Date(),
-    };
-    this.posts.set(post.id, post);
+    const [post] = await db
+      .insert(posts)
+      .values({
+        title: insertPost.title,
+        content: insertPost.content || null,
+        imageUrl: insertPost.imageUrl || null,
+        linkUrl: insertPost.linkUrl || null,
+        authorUsername: insertPost.authorUsername,
+        subredditId: insertPost.subredditId || null,
+      })
+      .returning();
     return post;
   }
 
   async updatePost(id: number, updates: Partial<Post>): Promise<Post | undefined> {
-    const post = this.posts.get(id);
-    if (!post) return undefined;
-    
-    const updatedPost = { ...post, ...updates };
-    this.posts.set(id, updatedPost);
-    return updatedPost;
+    const [post] = await db
+      .update(posts)
+      .set(updates)
+      .where(eq(posts.id, id))
+      .returning();
+    return post || undefined;
   }
 
   async deletePost(id: number): Promise<boolean> {
-    return this.posts.delete(id);
+    const result = await db.delete(posts).where(eq(posts.id, id));
+    return (result.rowCount || 0) > 0;
   }
 
   async searchPosts(query: string): Promise<Post[]> {
-    const lowercaseQuery = query.toLowerCase();
-    return Array.from(this.posts.values()).filter(post => 
-      post.title.toLowerCase().includes(lowercaseQuery) ||
-      (post.content && post.content.toLowerCase().includes(lowercaseQuery))
-    );
+    return await db
+      .select()
+      .from(posts)
+      .where(
+        like(posts.title, `%${query}%`)
+      )
+      .orderBy(desc(posts.votes));
   }
 
   // Comments
   async getCommentsByPost(postId: number): Promise<Comment[]> {
-    return Array.from(this.comments.values())
-      .filter(comment => comment.postId === postId)
-      .sort((a, b) => (b.votes || 0) - (a.votes || 0));
+    return await db
+      .select()
+      .from(comments)
+      .where(eq(comments.postId, postId))
+      .orderBy(desc(comments.votes));
   }
 
   async getComment(id: number): Promise<Comment | undefined> {
-    return this.comments.get(id);
+    const [comment] = await db.select().from(comments).where(eq(comments.id, id));
+    return comment || undefined;
   }
 
   async createComment(insertComment: InsertComment): Promise<Comment> {
     // Calculate depth based on parent
     let depth = 0;
     if (insertComment.parentId) {
-      const parent = this.comments.get(insertComment.parentId);
+      const parent = await this.getComment(insertComment.parentId);
       if (parent) {
         depth = (parent.depth || 0) + 1;
       }
     }
 
-    const comment: Comment = {
-      id: this.currentCommentId++,
-      content: insertComment.content,
-      authorUsername: insertComment.authorUsername,
-      postId: insertComment.postId || null,
-      parentId: insertComment.parentId || null,
-      depth,
-      votes: 0,
-      createdAt: new Date(),
-    };
-    this.comments.set(comment.id, comment);
+    const [comment] = await db
+      .insert(comments)
+      .values({
+        content: insertComment.content,
+        authorUsername: insertComment.authorUsername,
+        postId: insertComment.postId || null,
+        parentId: insertComment.parentId || null,
+        depth,
+      })
+      .returning();
 
     // Update post comment count
     if (comment.postId) {
-      const post = this.posts.get(comment.postId);
-      if (post) {
-        await this.updatePost(comment.postId, { 
-          commentCount: (post.commentCount || 0) + 1 
-        });
-      }
+      const commentCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(comments)
+        .where(eq(comments.postId, comment.postId));
+
+      await db
+        .update(posts)
+        .set({ commentCount: commentCount[0].count })
+        .where(eq(posts.id, comment.postId));
     }
 
     return comment;
   }
 
   async updateComment(id: number, updates: Partial<Comment>): Promise<Comment | undefined> {
-    const comment = this.comments.get(id);
-    if (!comment) return undefined;
-    
-    const updatedComment = { ...comment, ...updates };
-    this.comments.set(id, updatedComment);
-    return updatedComment;
+    const [comment] = await db
+      .update(comments)
+      .set(updates)
+      .where(eq(comments.id, id))
+      .returning();
+    return comment || undefined;
   }
 
   async deleteComment(id: number): Promise<boolean> {
-    const comment = this.comments.get(id);
+    const comment = await this.getComment(id);
     if (!comment) return false;
 
+    const result = await db.delete(comments).where(eq(comments.id, id));
+    
     // Update post comment count
     if (comment.postId) {
-      const post = this.posts.get(comment.postId);
-      if (post) {
-        await this.updatePost(comment.postId, { 
-          commentCount: Math.max(0, (post.commentCount || 0) - 1)
-        });
-      }
+      const commentCount = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(comments)
+        .where(eq(comments.postId, comment.postId));
+
+      await db
+        .update(posts)
+        .set({ commentCount: commentCount[0].count })
+        .where(eq(posts.id, comment.postId));
     }
 
-    return this.comments.delete(id);
+    return (result.rowCount || 0) > 0;
   }
 
   // Votes
   async getVote(userId: string, postId?: number, commentId?: number): Promise<Vote | undefined> {
-    return Array.from(this.votes.values()).find(vote => 
-      vote.userId === userId && 
-      vote.postId === postId && 
-      vote.commentId === commentId
-    );
+    const conditions = [eq(votes.userId, userId)];
+    
+    if (postId !== undefined) {
+      conditions.push(eq(votes.postId, postId));
+    }
+    if (commentId !== undefined) {
+      conditions.push(eq(votes.commentId, commentId));
+    }
+
+    const [vote] = await db
+      .select()
+      .from(votes)
+      .where(and(...conditions));
+    
+    return vote || undefined;
   }
 
   async createVote(insertVote: InsertVote): Promise<Vote> {
-    const vote: Vote = {
-      id: this.currentVoteId++,
-      userId: insertVote.userId,
-      postId: insertVote.postId || null,
-      commentId: insertVote.commentId || null,
-      voteType: insertVote.voteType,
-    };
-    this.votes.set(vote.id, vote);
+    const [vote] = await db
+      .insert(votes)
+      .values({
+        userId: insertVote.userId,
+        postId: insertVote.postId || null,
+        commentId: insertVote.commentId || null,
+        voteType: insertVote.voteType,
+      })
+      .returning();
 
     // Update vote counts
     if (vote.postId) {
-      const post = this.posts.get(vote.postId);
-      if (post) {
-        await this.updatePost(vote.postId, { 
-          votes: (post.votes || 0) + vote.voteType 
-        });
-      }
+      await db
+        .update(posts)
+        .set({
+          votes: sql`${posts.votes} + ${vote.voteType}`
+        })
+        .where(eq(posts.id, vote.postId));
     }
 
     if (vote.commentId) {
-      const comment = this.comments.get(vote.commentId);
-      if (comment) {
-        await this.updateComment(vote.commentId, { 
-          votes: (comment.votes || 0) + vote.voteType 
-        });
-      }
+      await db
+        .update(comments)
+        .set({
+          votes: sql`${comments.votes} + ${vote.voteType}`
+        })
+        .where(eq(comments.id, vote.commentId));
     }
 
     return vote;
   }
 
   async updateVote(id: number, voteType: number): Promise<Vote | undefined> {
-    const vote = this.votes.get(id);
-    if (!vote) return undefined;
+    const existingVote = await db.select().from(votes).where(eq(votes.id, id));
+    if (!existingVote[0]) return undefined;
 
-    const oldVoteType = vote.voteType;
-    const updatedVote = { ...vote, voteType };
-    this.votes.set(id, updatedVote);
+    const oldVoteType = existingVote[0].voteType;
+    const voteDiff = voteType - oldVoteType;
+
+    const [updatedVote] = await db
+      .update(votes)
+      .set({ voteType })
+      .where(eq(votes.id, id))
+      .returning();
 
     // Update vote counts
-    const voteDiff = voteType - oldVoteType;
-    
-    if (vote.postId) {
-      const post = this.posts.get(vote.postId);
-      if (post) {
-        await this.updatePost(vote.postId, { 
-          votes: (post.votes || 0) + voteDiff 
-        });
-      }
+    if (updatedVote.postId) {
+      await db
+        .update(posts)
+        .set({
+          votes: sql`${posts.votes} + ${voteDiff}`
+        })
+        .where(eq(posts.id, updatedVote.postId));
     }
 
-    if (vote.commentId) {
-      const comment = this.comments.get(vote.commentId);
-      if (comment) {
-        await this.updateComment(vote.commentId, { 
-          votes: (comment.votes || 0) + voteDiff 
-        });
-      }
+    if (updatedVote.commentId) {
+      await db
+        .update(comments)
+        .set({
+          votes: sql`${comments.votes} + ${voteDiff}`
+        })
+        .where(eq(comments.id, updatedVote.commentId));
     }
 
     return updatedVote;
   }
 
   async deleteVote(id: number): Promise<boolean> {
-    const vote = this.votes.get(id);
-    if (!vote) return false;
+    const existingVote = await db.select().from(votes).where(eq(votes.id, id));
+    if (!existingVote[0]) return false;
+
+    const vote = existingVote[0];
+    const result = await db.delete(votes).where(eq(votes.id, id));
 
     // Update vote counts
     if (vote.postId) {
-      const post = this.posts.get(vote.postId);
-      if (post) {
-        await this.updatePost(vote.postId, { 
-          votes: (post.votes || 0) - vote.voteType 
-        });
-      }
+      await db
+        .update(posts)
+        .set({
+          votes: sql`${posts.votes} - ${vote.voteType}`
+        })
+        .where(eq(posts.id, vote.postId));
     }
 
     if (vote.commentId) {
-      const comment = this.comments.get(vote.commentId);
-      if (comment) {
-        await this.updateComment(vote.commentId, { 
-          votes: (comment.votes || 0) - vote.voteType 
-        });
-      }
+      await db
+        .update(comments)
+        .set({
+          votes: sql`${comments.votes} - ${vote.voteType}`
+        })
+        .where(eq(comments.id, vote.commentId));
     }
 
-    return this.votes.delete(id);
+    return (result.rowCount || 0) > 0;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
