@@ -320,12 +320,12 @@ export default function UserProfile() {
                         )}
                         {commentPost && (
                           <div className="mb-2">
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                              Commented on: {commentPost.title}
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              {commentPost.title}
                             </span>
                           </div>
                         )}
-                        <p className="text-gray-900 dark:text-white mb-2 line-clamp-3">
+                        <p className="text-gray-600 dark:text-gray-400 mb-2 line-clamp-3">
                           {comment.content}
                         </p>
                         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
