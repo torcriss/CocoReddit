@@ -85,7 +85,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
                         <div className="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
                           <div className="flex items-center space-x-1">
                             <ChevronUp className="h-3 w-3" />
-                            <span>{post.votes || 0}</span>
+                            <span>{Math.max(0, post.votes || 0)}</span>
                           </div>
                           <div className="flex items-center space-x-1">
                             <MessageCircle className="h-3 w-3" />
