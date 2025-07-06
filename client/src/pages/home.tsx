@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect, useCallback } from "react";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
@@ -22,72 +22,66 @@ export default function Home() {
   const { user } = useAuth();
   const [, setLocation] = useLocation();
 
-  const { data: allPosts = [], isLoading } = useQuery<Post[]>({
-    queryKey: ["/api/posts"],
-    queryFn: async () => {
-      const response = await fetch("/api/posts?sortBy=hot");
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useInfiniteQuery({
+    queryKey: ["/api/posts", sortBy, selectedSubreddit, searchQuery],
+    queryFn: async ({ pageParam = 1 }) => {
+      const params = new URLSearchParams({
+        sortBy,
+        page: pageParam.toString(),
+        limit: "10",
+      });
+      
+      if (selectedSubreddit) {
+        params.append("subredditId", selectedSubreddit.toString());
+      }
+      
+      if (searchQuery) {
+        params.append("search", searchQuery);
+      }
+      
+      const response = await fetch(`/api/posts?${params}`);
       if (!response.ok) throw new Error("Failed to fetch posts");
       return response.json();
     },
+    getNextPageParam: (lastPage, pages) => {
+      return lastPage.length === 10 ? pages.length + 1 : undefined;
+    },
+    initialPageParam: 1,
   });
 
-  // Client-side filtering and sorting to prevent dynamic reloading
-  const filteredAndSortedPosts = (() => {
-    let posts = [...allPosts];
-    
-    // Apply search filter
-    if (searchQuery) {
-      posts = posts.filter((post: Post) => 
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (post.content && post.content.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
-    }
-    
-    // Apply subreddit filter
-    if (selectedSubreddit) {
-      posts = posts.filter((post: Post) => post.subredditId === selectedSubreddit);
-    }
-    
-    // Apply user posts filter
-    if (showUserPosts && user) {
-      const userIdentifier = user.firstName || user.email || "anonymous";
-      posts = posts.filter((post: Post) => {
-        return post.authorUsername === userIdentifier || 
-               post.authorUsername === user.firstName ||
-               post.authorUsername === user.email ||
-               post.authorUsername === (user.firstName || user.email);
-      });
-    }
-    
-    // Apply sorting
-    switch (sortBy) {
-      case "new":
-        posts.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-        break;
-      case "top":
-        posts.sort((a, b) => (b.votes || 0) - (a.votes || 0));
-        break;
-      case "hot":
-      default:
-        // Hot algorithm: combine votes and time
-        posts.sort((a, b) => {
-          const aScore = (a.votes || 0) + (Math.max(0, 24 - ((Date.now() - new Date(a.createdAt).getTime()) / (1000 * 60 * 60))) * 0.1);
-          const bScore = (b.votes || 0) + (Math.max(0, 24 - ((Date.now() - new Date(b.createdAt).getTime()) / (1000 * 60 * 60))) * 0.1);
-          return bScore - aScore;
-        });
-        break;
-    }
-    
-    // In popular mode, show only posts with high votes
-    if (viewMode === "popular") {
-      posts = posts.filter((post: Post) => (post.votes || 0) >= 1);
-    }
-    
-    return posts;
-  })();
+  // Flatten all pages into a single array
+  const allPosts = data?.pages.flatMap(page => page) || [];
+
+  // Apply popular mode filter (client-side since it's a UI state)
+  const filteredAndSortedPosts = viewMode === "popular" 
+    ? allPosts.filter((post: Post) => (post.votes || 0) >= 1)
+    : allPosts;
+
+  // Infinite scroll effect
+  useEffect(() => {
+    const handleScroll = () => {
+      if (
+        window.innerHeight + document.documentElement.scrollTop
+        >= document.documentElement.offsetHeight - 1000 // Load more when 1000px from bottom
+      ) {
+        if (hasNextPage && !isFetchingNextPage) {
+          fetchNextPage();
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   // Get all subreddits to find the selected one
-  const { data: subreddits = [] } = useQuery({
+  const { data: subreddits = [] } = useQuery<any[]>({
     queryKey: ["/api/subreddits"],
   });
 
@@ -125,22 +119,10 @@ export default function Home() {
 
   // Find the selected subreddit from the list
   const selectedSubredditData = selectedSubreddit 
-    ? subreddits.find(s => s.id === selectedSubreddit)
+    ? subreddits.find((s: any) => s.id === selectedSubreddit)
     : null;
 
-  const handleShowUserPosts = () => {
-    setShowUserPosts(true);
-    setShowUserComments(false);
-    setSelectedSubreddit(null); // Clear subreddit filter when showing user posts
-    setViewMode("home"); // Reset view mode
-  };
 
-  const handleShowUserComments = () => {
-    setShowUserComments(true);
-    setShowUserPosts(false);
-    setSelectedSubreddit(null); // Clear subreddit filter when showing user comments
-    setViewMode("home"); // Reset view mode
-  };
 
   const handleViewModeChange = (mode: "home" | "popular") => {
     setViewMode(mode);
@@ -314,9 +296,31 @@ export default function Home() {
                     </div>
                   </div>
                 ) : (
-                  filteredAndSortedPosts.map((post) => (
-                    <PostCard key={post.id} post={post} />
-                  ))
+                  <>
+                    {filteredAndSortedPosts.map((post) => (
+                      <PostCard key={post.id} post={post} />
+                    ))}
+                    
+                    {/* Infinite scroll loading indicator */}
+                    {isFetchingNextPage && (
+                      <div className="text-center py-8">
+                        <div className="text-gray-500 dark:text-gray-400">Loading more posts...</div>
+                      </div>
+                    )}
+                    
+                    {/* Load more button (fallback for manual loading) */}
+                    {hasNextPage && !isFetchingNextPage && (
+                      <div className="text-center py-8">
+                        <Button 
+                          onClick={() => fetchNextPage()}
+                          variant="outline"
+                          className="border-gray-300 hover:border-gray-400"
+                        >
+                          Load More Posts
+                        </Button>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             )}
@@ -326,8 +330,6 @@ export default function Home() {
           <Sidebar 
             selectedSubreddit={selectedSubreddit}
             onSubredditSelect={setSelectedSubreddit}
-            onShowUserPosts={handleShowUserPosts}
-            onShowUserComments={handleShowUserComments}
           />
         </div>
       </div>

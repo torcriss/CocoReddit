@@ -55,7 +55,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Posts
   app.get("/api/posts", async (req, res) => {
     try {
-      const { subredditId, sortBy, search } = req.query;
+      const { subredditId, sortBy, search, page = "1", limit = "10" } = req.query;
+      const pageNum = parseInt(page as string);
+      const limitNum = parseInt(limit as string);
       
       if (search) {
         const posts = await storage.searchPosts(search as string);
@@ -63,7 +65,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         const posts = await storage.getPosts(
           subredditId ? parseInt(subredditId as string) : undefined,
-          sortBy as string
+          sortBy as string,
+          pageNum,
+          limitNum
         );
         res.json(posts);
       }

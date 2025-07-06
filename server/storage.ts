@@ -33,7 +33,7 @@ export interface IStorage {
   createSubreddit(subreddit: InsertSubreddit): Promise<Subreddit>;
 
   // Posts
-  getPosts(subredditId?: number, sortBy?: string): Promise<Post[]>;
+  getPosts(subredditId?: number, sortBy?: string, page?: number, limit?: number): Promise<Post[]>;
   getPost(id: number): Promise<Post | undefined>;
   createPost(post: InsertPost): Promise<Post>;
   updatePost(id: number, updates: Partial<Post>): Promise<Post | undefined>;
@@ -104,26 +104,28 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Posts
-  async getPosts(subredditId?: number, sortBy: string = "hot"): Promise<Post[]> {
-    // Apply sorting
+  async getPosts(subredditId?: number, sortBy: string = "hot", page: number = 1, limit: number = 10): Promise<Post[]> {
+    const offset = (page - 1) * limit;
+    
+    // Apply sorting with pagination
     switch (sortBy) {
       case "new":
         if (subredditId) {
-          return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(desc(posts.createdAt));
+          return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(desc(posts.createdAt)).limit(limit).offset(offset);
         }
-        return await db.select().from(posts).orderBy(desc(posts.createdAt));
+        return await db.select().from(posts).orderBy(desc(posts.createdAt)).limit(limit).offset(offset);
       case "top":
         if (subredditId) {
-          return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(desc(posts.votes));
+          return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(desc(posts.votes)).limit(limit).offset(offset);
         }
-        return await db.select().from(posts).orderBy(desc(posts.votes));
+        return await db.select().from(posts).orderBy(desc(posts.votes)).limit(limit).offset(offset);
       case "hot":
       default:
         // Simple hot algorithm: order by votes + comment count
         if (subredditId) {
-          return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(desc(posts.votes), desc(posts.commentCount));
+          return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(desc(posts.votes), desc(posts.commentCount)).limit(limit).offset(offset);
         }
-        return await db.select().from(posts).orderBy(desc(posts.votes), desc(posts.commentCount));
+        return await db.select().from(posts).orderBy(desc(posts.votes), desc(posts.commentCount)).limit(limit).offset(offset);
     }
   }
 
