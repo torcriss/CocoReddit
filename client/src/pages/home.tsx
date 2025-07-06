@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useLocation } from "wouter";
 import Header from "@/components/Header";
 import PostCard from "@/components/PostCard";
 import Sidebar from "@/components/Sidebar";
@@ -19,6 +20,7 @@ export default function Home() {
   const [showUserPosts, setShowUserPosts] = useState(false);
   const [showUserComments, setShowUserComments] = useState(false);
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
 
   const { data: posts = [], isLoading } = useQuery<Post[]>({
     queryKey: ["/api/posts", { sortBy, search: searchQuery, viewMode, subredditId: selectedSubreddit, showUserPosts }],
@@ -113,6 +115,14 @@ export default function Home() {
     setViewMode("home"); // Reset view mode
   };
 
+  const handleViewModeChange = (mode: "home" | "popular") => {
+    setViewMode(mode);
+    // Reset user-specific views when changing view mode
+    setShowUserPosts(false);
+    setShowUserComments(false);
+    setSelectedSubreddit(null);
+  };
+
   const sortOptions = [
     { key: "hot", label: "Hot", icon: Flame },
     { key: "new", label: "New", icon: Clock },
@@ -124,7 +134,7 @@ export default function Home() {
       <Header 
         onSearch={setSearchQuery} 
         viewMode={viewMode}
-        onViewModeChange={setViewMode}
+        onViewModeChange={handleViewModeChange}
       />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -297,7 +307,10 @@ export default function Home() {
                       <div className="p-4">
                         <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-2">
                           <span>Comment on</span>
-                          <span className="mx-1 font-medium text-reddit-blue cursor-pointer hover:underline">
+                          <span 
+                            className="mx-1 font-medium text-reddit-blue cursor-pointer hover:underline"
+                            onClick={() => setLocation(`/post/${comment.postId}`)}
+                          >
                             {comment.postTitle}
                           </span>
                           <span className="mx-1">•</span>
