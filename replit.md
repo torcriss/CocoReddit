@@ -134,6 +134,7 @@ Changelog:
 - July 06, 2025. Added comment focusing: clicking Recent Comments navigates to post and scrolls to specific comment with temporary blue ring highlight
 - July 06, 2025. Improved navigation UX: posts/comments accessed from User Profile now show "Back to Profile" instead of "Back to Home" button
 - July 06, 2025. Changed Saved button styling from orange to red for better visual distinction
+- July 06, 2025. Performed database cleanup: removed all posts, comments, votes, and saved posts for fresh start
 ```
 
 ## User Preferences
