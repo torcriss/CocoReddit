@@ -7,9 +7,11 @@ import CreatePostDialog from "./CreatePostDialog";
 
 interface HeaderProps {
   onSearch: (query: string) => void;
+  viewMode?: "home" | "popular";
+  onViewModeChange?: (mode: "home" | "popular") => void;
 }
 
-export default function Header({ onSearch }: HeaderProps) {
+export default function Header({ onSearch, viewMode = "home", onViewModeChange }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -35,11 +37,29 @@ export default function Header({ onSearch }: HeaderProps) {
               
               {/* Navigation */}
               <nav className="hidden md:flex items-center space-x-1">
-                <Button variant="ghost" size="sm" className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-reddit-blue">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onViewModeChange?.("home")}
+                  className={`flex items-center space-x-1 ${
+                    viewMode === "home" 
+                      ? "text-reddit-blue bg-blue-50 dark:bg-blue-900/20" 
+                      : "text-gray-700 dark:text-gray-300 hover:text-reddit-blue"
+                  }`}
+                >
                   <Home className="h-4 w-4" />
                   <span>Home</span>
                 </Button>
-                <Button variant="ghost" size="sm" className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-reddit-blue">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => onViewModeChange?.("popular")}
+                  className={`flex items-center space-x-1 ${
+                    viewMode === "popular" 
+                      ? "text-reddit-blue bg-blue-50 dark:bg-blue-900/20" 
+                      : "text-gray-700 dark:text-gray-300 hover:text-reddit-blue"
+                  }`}
+                >
                   <Bookmark className="h-4 w-4" />
                   <span>Popular</span>
                 </Button>
