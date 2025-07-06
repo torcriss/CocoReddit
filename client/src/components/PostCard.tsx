@@ -223,10 +223,10 @@ export default function PostCard({ post }: PostCardProps) {
               size="sm"
               onClick={() => handleVote(1)}
               disabled={voteMutation.isPending}
-              className={`p-1 h-8 w-8 transition-all duration-200 ${
+              className={`p-1 h-8 w-8 transition-all duration-200 rounded-md ${
                 userVote === 1 
-                  ? "text-reddit-orange bg-reddit-orange/20 border border-reddit-orange/30" 
-                  : "text-gray-400 hover:text-reddit-orange hover:bg-reddit-orange/10"
+                  ? "text-orange-500 bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700 shadow-sm" 
+                  : "text-gray-400 dark:text-gray-500 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:border-orange-200 dark:hover:border-orange-800 border border-transparent"
               } ${
                 voteMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
               }`}
@@ -237,10 +237,10 @@ export default function PostCard({ post }: PostCardProps) {
                 <ChevronUp className="h-4 w-4" />
               )}
             </Button>
-            <span className={`text-sm font-bold transition-colors duration-200 min-w-[20px] text-center ${
-              userVote === 1 ? "text-reddit-orange" : 
-              userVote === -1 ? "text-blue-500" : 
-              "text-gray-900 dark:text-white"
+            <span className={`text-sm font-bold transition-colors duration-200 min-w-[24px] text-center px-1 ${
+              userVote === 1 ? "text-orange-500" : 
+              userVote === -1 ? "text-purple-500" : 
+              "text-gray-600 dark:text-gray-300"
             }`}>
               {optimisticVotes}
             </span>
@@ -249,10 +249,10 @@ export default function PostCard({ post }: PostCardProps) {
               size="sm"
               onClick={() => handleVote(-1)}
               disabled={voteMutation.isPending}
-              className={`p-1 h-8 w-8 transition-all duration-200 ${
+              className={`p-1 h-8 w-8 transition-all duration-200 rounded-md ${
                 userVote === -1 
-                  ? "text-blue-500 bg-blue-500/20 border border-blue-500/30" 
-                  : "text-gray-400 hover:text-blue-500 hover:bg-blue-500/10"
+                  ? "text-purple-500 bg-purple-100 dark:bg-purple-900/30 border border-purple-300 dark:border-purple-700 shadow-sm" 
+                  : "text-gray-400 dark:text-gray-500 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-200 dark:hover:border-purple-800 border border-transparent"
               } ${
                 voteMutation.isPending ? "opacity-50 cursor-not-allowed" : ""
               }`}
