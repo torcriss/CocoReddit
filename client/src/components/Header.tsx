@@ -16,7 +16,7 @@ interface HeaderProps {
   onSortByChange?: (sort: string) => void;
 }
 
-export default function Header({ onSearch, viewMode = "home", onViewModeChange }: HeaderProps) {
+export default function Header({ onSearch, viewMode = "home", onViewModeChange, sortBy = "hot", onSortByChange }: HeaderProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -25,6 +25,15 @@ export default function Header({ onSearch, viewMode = "home", onViewModeChange }
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     onSearch(searchQuery);
+  };
+
+  const getSortLabel = (sort: string) => {
+    switch (sort) {
+      case "hot": return "🔥 Hot";
+      case "new": return "🆕 New";
+      case "top": return "⬆️ Top";
+      default: return "🔥 Hot";
+    }
   };
 
   return (
@@ -72,6 +81,33 @@ export default function Header({ onSearch, viewMode = "home", onViewModeChange }
                   <Bookmark className="h-4 w-4" />
                   <span>Popular</span>
                 </Button>
+                
+                {/* Sort Dropdown */}
+                {onSortByChange && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-reddit-blue"
+                      >
+                        <span>{getSortLabel(sortBy)}</span>
+                        <ChevronDown className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start">
+                      <DropdownMenuItem onClick={() => onSortByChange("hot")}>
+                        🔥 Hot
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onSortByChange("new")}>
+                        🆕 New
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onSortByChange("top")}>
+                        ⬆️ Top
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
               </nav>
             </div>
 

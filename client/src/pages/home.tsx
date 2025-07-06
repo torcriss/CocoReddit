@@ -6,7 +6,7 @@ import PostCard from "@/components/PostCard";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Flame, Clock, TrendingUp, LayoutGrid, List, User, MessageCircle } from "lucide-react";
+import { TrendingUp, LayoutGrid, List, User, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import type { Post, Comment } from "@shared/schema";
@@ -150,11 +150,7 @@ export default function Home() {
     setSelectedSubreddit(null);
   };
 
-  const sortOptions = [
-    { key: "hot", label: "Hot", icon: Flame },
-    { key: "new", label: "New", icon: Clock },
-    { key: "top", label: "Top", icon: TrendingUp },
-  ];
+
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark">
@@ -162,6 +158,8 @@ export default function Home() {
         onSearch={setSearchQuery} 
         viewMode={viewMode}
         onViewModeChange={handleViewModeChange}
+        sortBy={sortBy}
+        onSortByChange={setSortBy}
       />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -267,63 +265,27 @@ export default function Home() {
                   </div>
                 </div>
               )}
-              <div className="flex items-center justify-between">
-                {/* Hide sort options when viewing user-specific content */}
-                {!showUserPosts && !showUserComments && (
-                  <div className="flex items-center space-x-4">
-                    {/* In popular mode, disable sort options and show only "Top" */}
-                    {viewMode === "popular" ? (
-                      <Button
-                        variant="default"
-                        size="sm"
-                        className="flex items-center space-x-2 bg-reddit-blue text-white hover:bg-reddit-blue/90"
-                      >
-                        <TrendingUp className="h-4 w-4" />
-                        <span>Top</span>
-                      </Button>
-                    ) : (
-                      sortOptions.map(({ key, label, icon: Icon }) => (
-                        <Button
-                          key={key}
-                          variant={sortBy === key ? "default" : "ghost"}
-                          size="sm"
-                          onClick={() => setSortBy(key)}
-                          className={`flex items-center space-x-2 ${
-                            sortBy === key 
-                              ? "bg-reddit-blue text-white hover:bg-reddit-blue/90" 
-                              : "text-gray-700 dark:text-gray-300 hover:text-reddit-blue"
-                          }`}
-                        >
-                          <Icon className="h-4 w-4" />
-                          <span>{label}</span>
-                        </Button>
-                      ))
-                    )}
-                  </div>
-                )}
-                
-                {/* Layout controls - show for posts, hide for comments */}
-                {!showUserComments && (
-                  <div className="flex items-center space-x-2">
-                    <Button 
-                      variant={layoutMode === "list" ? "default" : "ghost"} 
-                      size="sm"
-                      onClick={() => setLayoutMode("list")}
-                      className={layoutMode === "list" ? "bg-reddit-blue text-white hover:bg-reddit-blue/90" : ""}
-                    >
-                      <List className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant={layoutMode === "grid" ? "default" : "ghost"} 
-                      size="sm"
-                      onClick={() => setLayoutMode("grid")}
-                      className={layoutMode === "grid" ? "bg-reddit-blue text-white hover:bg-reddit-blue/90" : ""}
-                    >
-                      <LayoutGrid className="h-4 w-4" />
-                    </Button>
-                  </div>
-                )}
-              </div>
+              {/* Layout controls - show for posts, hide for comments */}
+              {!showUserComments && (
+                <div className="flex items-center justify-end space-x-2">
+                  <Button 
+                    variant={layoutMode === "list" ? "default" : "ghost"} 
+                    size="sm"
+                    onClick={() => setLayoutMode("list")}
+                    className={layoutMode === "list" ? "bg-reddit-blue text-white hover:bg-reddit-blue/90" : ""}
+                  >
+                    <List className="h-4 w-4" />
+                  </Button>
+                  <Button 
+                    variant={layoutMode === "grid" ? "default" : "ghost"} 
+                    size="sm"
+                    onClick={() => setLayoutMode("grid")}
+                    className={layoutMode === "grid" ? "bg-reddit-blue text-white hover:bg-reddit-blue/90" : ""}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Posts or Comments */}
