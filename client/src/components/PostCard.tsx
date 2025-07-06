@@ -182,7 +182,22 @@ export default function PostCard({ post }: PostCardProps) {
         
         <h2 
           className="text-lg font-semibold text-gray-900 dark:text-white mb-2 hover:text-reddit-blue cursor-pointer"
-          onClick={() => setLocation(`/post/${post.id}`)}
+          onClick={() => {
+            // Track visited post
+            const stored = localStorage.getItem('visitedPosts');
+            let visitedIds: number[] = [];
+            if (stored) {
+              try {
+                visitedIds = JSON.parse(stored);
+              } catch {
+                visitedIds = [];
+              }
+            }
+            const newVisitedIds = [post.id, ...visitedIds.filter(id => id !== post.id)];
+            localStorage.setItem('visitedPosts', JSON.stringify(newVisitedIds));
+            
+            setLocation(`/post/${post.id}`);
+          }}
         >
           {post.title}
         </h2>

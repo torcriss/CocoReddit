@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { MessageCircle, ChevronUp } from "lucide-react";
+import { MessageCircle, ChevronUp, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
+import { useState, useEffect } from "react";
 import type { Subreddit, Post } from "@shared/schema";
 
 interface SidebarProps {
@@ -12,6 +14,7 @@ interface SidebarProps {
 
 export default function Sidebar({ selectedSubreddit, onSubredditSelect }: SidebarProps) {
   const [, setLocation] = useLocation();
+  const [visitedPostIds, setVisitedPostIds] = useState<number[]>([]);
 
   const { data: subreddits = [] } = useQuery<Subreddit[]>({
     queryKey: ["/api/subreddits"],
@@ -22,14 +25,41 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     queryKey: ["/api/posts"],
   });
 
-  // Get recent posts (latest 5)
+  // Load visited posts from localStorage on component mount
+  useEffect(() => {
+    const stored = localStorage.getItem('visitedPosts');
+    if (stored) {
+      try {
+        setVisitedPostIds(JSON.parse(stored));
+      } catch {
+        setVisitedPostIds([]);
+      }
+    }
+  }, []);
+
+  // Get recently visited posts (posts user has clicked on)
   const recentPosts = posts
+    .filter(post => visitedPostIds.includes(post.id))
     .sort((a, b) => {
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateB - dateA;
+      // Sort by when they were visited (most recent first)
+      const aIndex = visitedPostIds.indexOf(a.id);
+      const bIndex = visitedPostIds.indexOf(b.id);
+      return bIndex - aIndex;
     })
     .slice(0, 5);
+
+  const handlePostClick = (postId: number) => {
+    // Add to visited posts and update localStorage
+    const newVisitedIds = [postId, ...visitedPostIds.filter(id => id !== postId)];
+    setVisitedPostIds(newVisitedIds);
+    localStorage.setItem('visitedPosts', JSON.stringify(newVisitedIds));
+    setLocation(`/post/${postId}`);
+  };
+
+  const clearRecentPosts = () => {
+    setVisitedPostIds([]);
+    localStorage.removeItem('visitedPosts');
+  };
 
   const communityColors = [
     "bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500",
@@ -57,21 +87,34 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
         {/* Recent Posts */}
         <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
-              Recent Posts
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
+                Recent Posts
+              </CardTitle>
+              {recentPosts.length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={clearRecentPosts}
+                  className="text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 h-8 w-8"
+                  title="Clear recent posts"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent className="pt-0">
             <div className="space-y-3">
               {recentPosts.length === 0 ? (
                 <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-                  No recent posts
+                  No visited posts yet
                 </div>
               ) : (
                 recentPosts.map((post) => (
                   <div
                     key={post.id}
-                    onClick={() => setLocation(`/post/${post.id}`)}
+                    onClick={() => handlePostClick(post.id)}
                     className="p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark cursor-pointer transition-colors"
                   >
                     <div className="flex items-start justify-between">
