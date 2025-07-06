@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Header from "@/components/Header";
 import CommentThread from "@/components/CommentThread";
-import ShareDialog from "@/components/ShareDialog";
+
 import { formatDistanceToNow } from "date-fns";
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -20,7 +20,7 @@ export default function PostDetail() {
   const { id } = useParams();
   const [userVote, setUserVote] = useState<number | null>(null);
   const [optimisticSaved, setOptimisticSaved] = useState<boolean | null>(null);
-  const [showShareDialog, setShowShareDialog] = useState(false);
+
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"home" | "popular">("home");
@@ -368,7 +368,21 @@ export default function PostDetail() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setShowShareDialog(true)}
+                  onClick={() => {
+                    const url = `${window.location.origin}/post/${id}`;
+                    navigator.clipboard.writeText(url).then(() => {
+                      toast({
+                        title: "Link copied",
+                        description: "Post link copied to clipboard",
+                      });
+                    }).catch(() => {
+                      toast({
+                        title: "Error",
+                        description: "Failed to copy link to clipboard",
+                        variant: "destructive",
+                      });
+                    });
+                  }}
                   className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-reddit-dark"
                 >
                   <Share className="h-4 w-4" />
@@ -409,12 +423,6 @@ export default function PostDetail() {
         </Card>
       </div>
 
-      <ShareDialog 
-        open={showShareDialog} 
-        onOpenChange={setShowShareDialog}
-        postId={post.id}
-        postTitle={post.title}
-      />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
-import ShareDialog from "./ShareDialog";
+
 import type { Post } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -20,7 +20,7 @@ export default function PostCard({ post }: PostCardProps) {
   const [userVote, setUserVote] = useState<number | null>(null);
   const [optimisticVotes, setOptimisticVotes] = useState(post.votes || 0);
   const [optimisticSaved, setOptimisticSaved] = useState<boolean | null>(null);
-  const [showShareDialog, setShowShareDialog] = useState(false);
+
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { isAuthenticated, user } = useAuth();
@@ -403,7 +403,22 @@ export default function PostCard({ post }: PostCardProps) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setShowShareDialog(true)}
+            onClick={(e) => {
+              e.stopPropagation();
+              const url = `${window.location.origin}/post/${post.id}`;
+              navigator.clipboard.writeText(url).then(() => {
+                toast({
+                  title: "Link copied",
+                  description: "Post link copied to clipboard",
+                });
+              }).catch(() => {
+                toast({
+                  title: "Error",
+                  description: "Failed to copy link to clipboard",
+                  variant: "destructive",
+                });
+              });
+            }}
             className="flex items-center space-x-1 hover:bg-gray-100 dark:hover:bg-reddit-dark text-gray-500 dark:text-gray-400"
           >
             <Share2 className="h-4 w-4" />
@@ -432,13 +447,6 @@ export default function PostCard({ post }: PostCardProps) {
         </div>
       </div>
 
-      {/* Share Dialog */}
-      <ShareDialog
-        open={showShareDialog}
-        onOpenChange={setShowShareDialog}
-        postId={post.id}
-        postTitle={post.title}
-      />
     </Card>
   );
 }
