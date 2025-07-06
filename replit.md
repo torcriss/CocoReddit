@@ -118,6 +118,8 @@ Changelog:
 - July 06, 2025. Enhanced save button with optimistic updates for immediate UI response
 - July 06, 2025. Updated Share button to copy link directly with toast notifications instead of modal dialog
 - July 06, 2025. Added highlighted orange state to Share button when link is copied (resets on page reload)
+- July 06, 2025. Fixed Share button highlighting to only show one highlighted post at a time globally
+- July 06, 2025. Reordered User Profile page sections from left to right: Recent Posts, Saved Posts, Recent Comments
 ```
 
 ## User Preferences
