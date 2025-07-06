@@ -13,6 +13,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { useSharedState } from "@/hooks/useSharedState";
 import type { Post } from "@shared/schema";
 import { useLocation } from "wouter";
 
@@ -20,7 +21,6 @@ export default function PostDetail() {
   const { id } = useParams();
   const [userVote, setUserVote] = useState<number | null>(null);
   const [optimisticSaved, setOptimisticSaved] = useState<boolean | null>(null);
-  const [isShared, setIsShared] = useState(false);
 
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -28,6 +28,7 @@ export default function PostDetail() {
   const queryClient = useQueryClient();
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
+  const { isShared, setSharedPost } = useSharedState();
 
   const { data: post, isLoading } = useQuery<Post>({
     queryKey: ["/api/posts", id],
@@ -372,7 +373,7 @@ export default function PostDetail() {
                   onClick={() => {
                     const url = `${window.location.origin}/post/${id}`;
                     navigator.clipboard.writeText(url).then(() => {
-                      setIsShared(true);
+                      setSharedPost(parseInt(id!));
                       toast({
                         title: "Link copied",
                         description: "Post link copied to clipboard",
@@ -386,7 +387,7 @@ export default function PostDetail() {
                     });
                   }}
                   className={`flex items-center space-x-1 text-xs hover:bg-gray-100 dark:hover:bg-reddit-dark ${
-                    isShared 
+                    isShared(parseInt(id!)) 
                       ? 'text-orange-500 dark:text-orange-400' 
                       : 'text-gray-500 dark:text-gray-400'
                   }`}

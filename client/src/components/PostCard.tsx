@@ -10,6 +10,7 @@ import type { Post } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { useSharedState } from "@/hooks/useSharedState";
 import { useLocation } from "wouter";
 
 interface PostCardProps {
@@ -20,12 +21,12 @@ export default function PostCard({ post }: PostCardProps) {
   const [userVote, setUserVote] = useState<number | null>(null);
   const [optimisticVotes, setOptimisticVotes] = useState(post.votes || 0);
   const [optimisticSaved, setOptimisticSaved] = useState<boolean | null>(null);
-  const [isShared, setIsShared] = useState(false);
 
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
+  const { isShared, setSharedPost } = useSharedState();
 
   // Fetch user's current vote for this post
   const { data: currentVote } = useQuery({
@@ -408,7 +409,7 @@ export default function PostCard({ post }: PostCardProps) {
               e.stopPropagation();
               const url = `${window.location.origin}/post/${post.id}`;
               navigator.clipboard.writeText(url).then(() => {
-                setIsShared(true);
+                setSharedPost(post.id);
                 toast({
                   title: "Link copied",
                   description: "Post link copied to clipboard",
@@ -422,7 +423,7 @@ export default function PostCard({ post }: PostCardProps) {
               });
             }}
             className={`flex items-center space-x-1 hover:bg-gray-100 dark:hover:bg-reddit-dark ${
-              isShared 
+              isShared(post.id) 
                 ? 'text-orange-500 dark:text-orange-400' 
                 : 'text-gray-500 dark:text-gray-400'
             }`}
