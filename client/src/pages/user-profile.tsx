@@ -209,9 +209,6 @@ export default function UserProfile() {
                       onClick={() => handlePostClick(post.id)}
                       className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors cursor-pointer"
                     >
-                      <h3 className="font-medium text-gray-900 dark:text-white mb-2 line-clamp-2">
-                        {post.title}
-                      </h3>
                       {getSubredditName(post.subredditId ?? undefined) && (
                         <div className="mb-2">
                           <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
@@ -219,6 +216,9 @@ export default function UserProfile() {
                           </span>
                         </div>
                       )}
+                      <h3 className="font-medium text-gray-900 dark:text-white mb-2 line-clamp-2">
+                        {post.title}
+                      </h3>
                       <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                         <div className="flex items-center space-x-3">
                           <div className="flex items-center space-x-1">
@@ -259,9 +259,6 @@ export default function UserProfile() {
                       onClick={() => handlePostClick(post.id)}
                       className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors cursor-pointer"
                     >
-                      <h3 className="font-medium text-gray-900 dark:text-white mb-2 line-clamp-2">
-                        {post.title}
-                      </h3>
                       {getSubredditName(post.subredditId ?? undefined) && (
                         <div className="mb-2">
                           <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
@@ -269,6 +266,9 @@ export default function UserProfile() {
                           </span>
                         </div>
                       )}
+                      <h3 className="font-medium text-gray-900 dark:text-white mb-2 line-clamp-2">
+                        {post.title}
+                      </h3>
                       <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                         <div className="flex items-center space-x-3">
                           <div className="flex items-center space-x-1">

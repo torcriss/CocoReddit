@@ -266,7 +266,7 @@ export default function PostCard({ post }: PostCardProps) {
     <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-colors overflow-hidden">
       <div className="p-4">
         <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-2">
-          <span className="font-medium text-gray-900 dark:text-white">
+          <span className="font-medium text-blue-600 dark:text-blue-400">
             r/{subreddit?.name || "general"}
           </span>
           <span className="mx-1">•</span>

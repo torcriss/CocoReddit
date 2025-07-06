@@ -118,7 +118,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs text-reddit-blue font-medium mb-1">
+                        <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">
                           r/{getSubredditName(post.subredditId || undefined)}
                         </div>
                         <div className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-2">

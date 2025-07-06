@@ -126,6 +126,8 @@ Changelog:
 - July 06, 2025. Fixed Recent Posts ordering consistency between homepage sidebar and profile page using visited posts logic
 - July 06, 2025. Made all User Profile page sections infinite: Recent Posts, Saved Posts, and Recent Comments (removed 5-item limits)
 - July 06, 2025. Added community information and clickable functionality to Recent Posts and Saved Posts sections on profile page
+- July 06, 2025. Reordered profile page posts to show community first, then title
+- July 06, 2025. Applied consistent light blue styling (text-blue-600/text-blue-400) for community names across homepage and profile page
 ```
 
 ## User Preferences
