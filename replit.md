@@ -125,6 +125,7 @@ Changelog:
 - July 06, 2025. Made Recent Posts section in sidebar truly infinite - shows all visited posts without limit
 - July 06, 2025. Fixed Recent Posts ordering consistency between homepage sidebar and profile page using visited posts logic
 - July 06, 2025. Made all User Profile page sections infinite: Recent Posts, Saved Posts, and Recent Comments (removed 5-item limits)
+- July 06, 2025. Added community information and clickable functionality to Recent Posts and Saved Posts sections on profile page
 ```
 
 ## User Preferences

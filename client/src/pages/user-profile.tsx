@@ -7,7 +7,7 @@ import { MessageCircle, ChevronUp, Calendar, User, ArrowLeft } from "lucide-reac
 import { formatDistanceToNow, format } from "date-fns";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
-import type { Post, Comment } from "@shared/schema";
+import type { Post, Comment, Subreddit } from "@shared/schema";
 
 export default function UserProfile() {
   const { user, isAuthenticated } = useAuth();
@@ -41,6 +41,10 @@ export default function UserProfile() {
   const { data: savedPosts = [] } = useQuery<Post[]>({
     queryKey: ["/api/saved-posts"],
     enabled: isAuthenticated && !!user,
+  });
+
+  const { data: subreddits = [] } = useQuery<Subreddit[]>({
+    queryKey: ["/api/subreddits"],
   });
 
   // Load visited posts from localStorage on component mount
@@ -102,6 +106,16 @@ export default function UserProfile() {
     } catch {
       return "just now";
     }
+  };
+
+  const getSubredditName = (subredditId?: number | null) => {
+    if (!subredditId) return null;
+    const subreddit = subreddits.find((s: Subreddit) => s.id === subredditId);
+    return subreddit?.name || null;
+  };
+
+  const handlePostClick = (postId: number) => {
+    setLocation(`/post/${postId}`);
   };
 
   return (
@@ -192,11 +206,19 @@ export default function UserProfile() {
                   recentPosts.map((post) => (
                     <div
                       key={post.id}
-                      className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors"
+                      onClick={() => handlePostClick(post.id)}
+                      className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors cursor-pointer"
                     >
                       <h3 className="font-medium text-gray-900 dark:text-white mb-2 line-clamp-2">
                         {post.title}
                       </h3>
+                      {getSubredditName(post.subredditId ?? undefined) && (
+                        <div className="mb-2">
+                          <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                            r/{getSubredditName(post.subredditId ?? undefined)}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                         <div className="flex items-center space-x-3">
                           <div className="flex items-center space-x-1">
@@ -234,11 +256,19 @@ export default function UserProfile() {
                   savedPosts.map((post) => (
                     <div
                       key={post.id}
-                      className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors"
+                      onClick={() => handlePostClick(post.id)}
+                      className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors cursor-pointer"
                     >
                       <h3 className="font-medium text-gray-900 dark:text-white mb-2 line-clamp-2">
                         {post.title}
                       </h3>
+                      {getSubredditName(post.subredditId ?? undefined) && (
+                        <div className="mb-2">
+                          <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
+                            r/{getSubredditName(post.subredditId ?? undefined)}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                         <div className="flex items-center space-x-3">
                           <div className="flex items-center space-x-1">
