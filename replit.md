@@ -116,6 +116,8 @@ Changelog:
 - July 06, 2025. Added Saved Posts section to User Profile page showing saved content
 - July 06, 2025. Save button shows orange color when saved and toggles save/unsave
 - July 06, 2025. Enhanced save button with optimistic updates for immediate UI response
+- July 06, 2025. Updated Share button to copy link directly with toast notifications instead of modal dialog
+- July 06, 2025. Added highlighted orange state to Share button when link is copied (resets on page reload)
 ```
 
 ## User Preferences

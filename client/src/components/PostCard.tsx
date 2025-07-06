@@ -20,6 +20,7 @@ export default function PostCard({ post }: PostCardProps) {
   const [userVote, setUserVote] = useState<number | null>(null);
   const [optimisticVotes, setOptimisticVotes] = useState(post.votes || 0);
   const [optimisticSaved, setOptimisticSaved] = useState<boolean | null>(null);
+  const [isShared, setIsShared] = useState(false);
 
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
@@ -407,6 +408,7 @@ export default function PostCard({ post }: PostCardProps) {
               e.stopPropagation();
               const url = `${window.location.origin}/post/${post.id}`;
               navigator.clipboard.writeText(url).then(() => {
+                setIsShared(true);
                 toast({
                   title: "Link copied",
                   description: "Post link copied to clipboard",
@@ -419,7 +421,11 @@ export default function PostCard({ post }: PostCardProps) {
                 });
               });
             }}
-            className="flex items-center space-x-1 hover:bg-gray-100 dark:hover:bg-reddit-dark text-gray-500 dark:text-gray-400"
+            className={`flex items-center space-x-1 hover:bg-gray-100 dark:hover:bg-reddit-dark ${
+              isShared 
+                ? 'text-orange-500 dark:text-orange-400' 
+                : 'text-gray-500 dark:text-gray-400'
+            }`}
           >
             <Share2 className="h-4 w-4" />
             <span>Share</span>

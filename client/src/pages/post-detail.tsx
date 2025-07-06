@@ -20,6 +20,7 @@ export default function PostDetail() {
   const { id } = useParams();
   const [userVote, setUserVote] = useState<number | null>(null);
   const [optimisticSaved, setOptimisticSaved] = useState<boolean | null>(null);
+  const [isShared, setIsShared] = useState(false);
 
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
@@ -371,6 +372,7 @@ export default function PostDetail() {
                   onClick={() => {
                     const url = `${window.location.origin}/post/${id}`;
                     navigator.clipboard.writeText(url).then(() => {
+                      setIsShared(true);
                       toast({
                         title: "Link copied",
                         description: "Post link copied to clipboard",
@@ -383,7 +385,11 @@ export default function PostDetail() {
                       });
                     });
                   }}
-                  className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-reddit-dark"
+                  className={`flex items-center space-x-1 text-xs hover:bg-gray-100 dark:hover:bg-reddit-dark ${
+                    isShared 
+                      ? 'text-orange-500 dark:text-orange-400' 
+                      : 'text-gray-500 dark:text-gray-400'
+                  }`}
                 >
                   <Share className="h-4 w-4" />
                   <span>Share</span>
