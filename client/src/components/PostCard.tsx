@@ -19,6 +19,7 @@ interface PostCardProps {
 export default function PostCard({ post }: PostCardProps) {
   const [userVote, setUserVote] = useState<number | null>(null);
   const [optimisticVotes, setOptimisticVotes] = useState(post.votes || 0);
+  const [optimisticSaved, setOptimisticSaved] = useState<boolean | null>(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
@@ -93,6 +94,13 @@ export default function PostCard({ post }: PostCardProps) {
     setOptimisticVotes(post.votes || 0);
   }, [post.votes]);
 
+  // Reset optimistic saved state when saved data is updated
+  useEffect(() => {
+    if (isSaved !== undefined) {
+      setOptimisticSaved(null);
+    }
+  }, [isSaved]);
+
   const voteMutation = useMutation({
     mutationFn: async (voteType: number) => {
       return apiRequest("POST", "/api/votes", {
@@ -162,17 +170,30 @@ export default function PostCard({ post }: PostCardProps) {
         postId: post.id,
       });
     },
+    onMutate: async () => {
+      // Optimistic update
+      const currentSaved = optimisticSaved !== null ? optimisticSaved : !!isSaved;
+      setOptimisticSaved(!currentSaved);
+      
+      return { previousSaved: currentSaved };
+    },
     onSuccess: () => {
       // Invalidate saved posts queries
       queryClient.invalidateQueries({ queryKey: ["/api/saved-posts", post.id] });
       queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
       
+      const currentSaved = optimisticSaved !== null ? optimisticSaved : !!isSaved;
       toast({
-        title: isSaved ? "Post unsaved" : "Post saved",
-        description: isSaved ? "Removed from your saved posts" : "Added to your saved posts",
+        title: currentSaved ? "Post saved" : "Post unsaved",
+        description: currentSaved ? "Added to your saved posts" : "Removed from your saved posts",
       });
     },
-    onError: (error: Error) => {
+    onError: (error: Error, variables, context) => {
+      // Revert optimistic update
+      if (context?.previousSaved !== undefined) {
+        setOptimisticSaved(context.previousSaved);
+      }
+      
       if (isUnauthorizedError(error)) {
         toast({
           title: "Login Required",
@@ -230,8 +251,9 @@ export default function PostCard({ post }: PostCardProps) {
     saveMutation.mutate();
   };
 
-  const formatTimeAgo = (date: Date) => {
+  const formatTimeAgo = (date: Date | null) => {
     try {
+      if (!date) return "unknown";
       return formatDistanceToNow(new Date(date), { addSuffix: true });
     } catch (error) {
       return "unknown";
@@ -395,7 +417,7 @@ export default function PostCard({ post }: PostCardProps) {
             onClick={handleSave}
             disabled={saveMutation.isPending}
             className={`flex items-center space-x-1 hover:bg-gray-100 dark:hover:bg-reddit-dark ${
-              isSaved 
+              (optimisticSaved !== null ? optimisticSaved : !!isSaved) 
                 ? 'text-orange-500 dark:text-orange-400' 
                 : 'text-gray-500 dark:text-gray-400'
             }`}
@@ -405,7 +427,7 @@ export default function PostCard({ post }: PostCardProps) {
             ) : (
               <BookmarkPlus className="h-4 w-4" />
             )}
-            <span>{isSaved ? 'Saved' : 'Save'}</span>
+            <span>{(optimisticSaved !== null ? optimisticSaved : !!isSaved) ? 'Saved' : 'Save'}</span>
           </Button>
         </div>
       </div>
