@@ -33,8 +33,21 @@ export default function Home() {
       
       // Filter by user posts if showUserPosts is true
       if (showUserPosts && user) {
+        console.log("Current user object:", user);
         const userIdentifier = user.firstName || user.email || "anonymous";
-        return allPosts.filter((post: Post) => post.authorUsername === userIdentifier);
+        console.log("Filtering posts for user:", userIdentifier);
+        console.log("Available posts:", allPosts.map(p => ({ id: p.id, title: p.title, author: p.authorUsername })));
+        
+        // Try multiple possible matches since posts might be created with different identifiers
+        const filteredPosts = allPosts.filter((post: Post) => {
+          return post.authorUsername === userIdentifier || 
+                 post.authorUsername === user.firstName ||
+                 post.authorUsername === user.email ||
+                 post.authorUsername === (user.firstName || user.email);
+        });
+        
+        console.log("Filtered posts:", filteredPosts);
+        return filteredPosts;
       }
       
       return allPosts;

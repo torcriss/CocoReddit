@@ -4,6 +4,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CreatePostDialog from "./CreatePostDialog";
+import { useAuth } from "@/hooks/useAuth";
 import type { Subreddit, Post, Comment } from "@shared/schema";
 
 interface SidebarProps {
@@ -14,6 +15,7 @@ interface SidebarProps {
 
 export default function Sidebar({ selectedSubreddit, onSubredditSelect, onShowUserPosts }: SidebarProps) {
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
+  const { user } = useAuth();
 
   const { data: subreddits = [] } = useQuery<Subreddit[]>({
     queryKey: ["/api/subreddits"],
@@ -26,6 +28,17 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect, onShowUs
 
   // Calculate total comment count from all posts
   const totalComments = posts.reduce((total, post) => total + (post.commentCount || 0), 0);
+  
+  // Calculate user-specific post count if user is logged in
+  const userPosts = user ? posts.filter((post: Post) => {
+    const userIdentifier = user.firstName || user.email || "anonymous";
+    return post.authorUsername === userIdentifier || 
+           post.authorUsername === user.firstName ||
+           post.authorUsername === user.email ||
+           post.authorUsername === (user.firstName || user.email);
+  }) : [];
+  
+  const displayPostCount = userPosts.length;
   const totalPosts = posts.length;
 
   const communityColors = [
@@ -139,8 +152,8 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect, onShowUs
                   className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors"
                   onClick={() => onShowUserPosts?.()}
                 >
-                  <div className="font-semibold text-gray-900 dark:text-white">{totalPosts}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Posts</div>
+                  <div className="font-semibold text-gray-900 dark:text-white">{displayPostCount}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">My Posts</div>
                 </div>
                 <div className="p-2">
                   <div className="font-semibold text-gray-900 dark:text-white">{totalComments}</div>
