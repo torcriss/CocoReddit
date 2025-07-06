@@ -21,6 +21,8 @@ export default function PostDetail() {
   const [userVote, setUserVote] = useState<number | null>(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [, setLocation] = useLocation();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<"home" | "popular">("home");
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
@@ -86,6 +88,16 @@ export default function PostDetail() {
     }
   };
 
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setLocation("/"); // Navigate back to home with search
+  };
+
+  const handleViewModeChange = (mode: "home" | "popular") => {
+    setViewMode(mode);
+    setLocation("/"); // Navigate back to home with new view mode
+  };
+
   const formatTimeAgo = (dateStr: string | Date) => {
     const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
     return formatDistanceToNow(date, { addSuffix: true });
@@ -94,7 +106,11 @@ export default function PostDetail() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark">
-        <Header onSearch={() => {}} />
+        <Header 
+          onSearch={handleSearch}
+          viewMode={viewMode}
+          onViewModeChange={handleViewModeChange}
+        />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="text-center py-8">
             <div className="text-gray-500 dark:text-gray-400">Loading post...</div>
@@ -107,7 +123,11 @@ export default function PostDetail() {
   if (!post) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark">
-        <Header onSearch={() => {}} />
+        <Header 
+          onSearch={handleSearch}
+          viewMode={viewMode}
+          onViewModeChange={handleViewModeChange}
+        />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="text-center py-8">
             <div className="text-gray-500 dark:text-gray-400">Post not found</div>
@@ -126,7 +146,11 @@ export default function PostDetail() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark">
-      <Header onSearch={() => {}} />
+      <Header 
+        onSearch={handleSearch}
+        viewMode={viewMode}
+        onViewModeChange={handleViewModeChange}
+      />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Back button */}
