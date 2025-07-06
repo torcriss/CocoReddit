@@ -6,7 +6,7 @@ import PostCard from "@/components/PostCard";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TrendingUp, LayoutGrid, List, User, MessageCircle } from "lucide-react";
+import { TrendingUp, User, MessageCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import type { Post, Comment } from "@shared/schema";
@@ -16,7 +16,7 @@ export default function Home() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"home" | "popular">("home");
   const [selectedSubreddit, setSelectedSubreddit] = useState<number | null>(null);
-  const [layoutMode, setLayoutMode] = useState<"list" | "grid">("list");
+
   const [showUserPosts, setShowUserPosts] = useState(false);
   const [showUserComments, setShowUserComments] = useState(false);
   const { user } = useAuth();
@@ -265,27 +265,7 @@ export default function Home() {
                   </div>
                 </div>
               )}
-              {/* Layout controls - show for posts, hide for comments */}
-              {!showUserComments && (
-                <div className="flex items-center justify-end space-x-2">
-                  <Button 
-                    variant={layoutMode === "list" ? "default" : "ghost"} 
-                    size="sm"
-                    onClick={() => setLayoutMode("list")}
-                    className={layoutMode === "list" ? "bg-reddit-blue text-white hover:bg-reddit-blue/90" : ""}
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant={layoutMode === "grid" ? "default" : "ghost"} 
-                    size="sm"
-                    onClick={() => setLayoutMode("grid")}
-                    className={layoutMode === "grid" ? "bg-reddit-blue text-white hover:bg-reddit-blue/90" : ""}
-                  >
-                    <LayoutGrid className="h-4 w-4" />
-                  </Button>
-                </div>
-              )}
+
             </div>
 
             {/* Posts or Comments */}
@@ -321,10 +301,7 @@ export default function Home() {
                 )}
               </div>
             ) : (
-              <div className={layoutMode === "grid" 
-                ? "grid grid-cols-1 md:grid-cols-2 gap-4" 
-                : "space-y-4"
-              }>
+              <div className="space-y-4">
                 {isLoading ? (
                   <div className="text-center py-8 col-span-full">
                     <div className="text-gray-500 dark:text-gray-400">Loading posts...</div>
