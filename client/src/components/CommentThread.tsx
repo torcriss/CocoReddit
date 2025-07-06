@@ -93,7 +93,7 @@ function CommentItem({ comment, onReply }: CommentItemProps) {
   const avatarColor = avatarColors[comment.id % avatarColors.length];
 
   return (
-    <div className={(comment.depth || 0) > 0 ? "comment-line" : ""}>
+    <div id={`comment-${comment.id}`} className={(comment.depth || 0) > 0 ? "comment-line" : ""}>
       <div className="flex space-x-3">
         <div className="flex-shrink-0">
           <div className={`w-8 h-8 ${avatarColor} rounded-full flex items-center justify-center`}>

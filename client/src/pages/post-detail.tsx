@@ -30,6 +30,24 @@ export default function PostDetail() {
   const { toast } = useToast();
   const { isShared, setSharedPost } = useSharedState();
 
+  // Handle comment focus from URL hash
+  useEffect(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#comment-')) {
+      const commentId = hash.replace('#comment-', '');
+      setTimeout(() => {
+        const element = document.getElementById(`comment-${commentId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          element.classList.add('ring-2', 'ring-blue-500', 'ring-opacity-50');
+          setTimeout(() => {
+            element.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50');
+          }, 3000);
+        }
+      }, 500);
+    }
+  }, [id]);
+
   const { data: post, isLoading } = useQuery<Post>({
     queryKey: ["/api/posts", id],
     queryFn: async () => {
