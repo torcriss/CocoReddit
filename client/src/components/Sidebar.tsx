@@ -37,7 +37,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     }
   }, []);
 
-  // Get recently visited posts (posts user has clicked on)
+  // Get recently visited posts (posts user has clicked on) - no limit for infinite scrolling
   const recentPosts = posts
     .filter(post => visitedPostIds.includes(post.id))
     .sort((a, b) => {
@@ -45,8 +45,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
       const aIndex = visitedPostIds.indexOf(a.id);
       const bIndex = visitedPostIds.indexOf(b.id);
       return aIndex - bIndex;
-    })
-    .slice(0, 10); // Show up to 10 recent posts instead of 5
+    });
 
   const handlePostClick = (postId: number) => {
     // Add to visited posts and update localStorage

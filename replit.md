@@ -120,6 +120,9 @@ Changelog:
 - July 06, 2025. Added highlighted orange state to Share button when link is copied (resets on page reload)
 - July 06, 2025. Fixed Share button highlighting to only show one highlighted post at a time globally
 - July 06, 2025. Reordered User Profile page sections from left to right: Recent Posts, Saved Posts, Recent Comments
+- July 06, 2025. Fixed Recent Posts section on User Profile page to show all platform posts instead of user-specific posts
+- July 06, 2025. Implemented infinite scrolling on homepage with pagination (10 posts per page)
+- July 06, 2025. Made Recent Posts section in sidebar truly infinite - shows all visited posts without limit
 ```
 
 ## User Preferences
