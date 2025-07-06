@@ -6,11 +6,13 @@ import { Button } from "@/components/ui/button";
 import { MessageCircle, ChevronUp, Calendar, User, ArrowLeft } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useLocation } from "wouter";
+import { useEffect, useState } from "react";
 import type { Post, Comment } from "@shared/schema";
 
 export default function UserProfile() {
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
+  const [visitedPostIds, setVisitedPostIds] = useState<number[]>([]);
 
   const { data: posts = [] } = useQuery<Post[]>({
     queryKey: ["/api/posts"],
@@ -41,6 +43,18 @@ export default function UserProfile() {
     enabled: isAuthenticated && !!user,
   });
 
+  // Load visited posts from localStorage on component mount
+  useEffect(() => {
+    const stored = localStorage.getItem('visitedPosts');
+    if (stored) {
+      try {
+        setVisitedPostIds(JSON.parse(stored));
+      } catch {
+        setVisitedPostIds([]);
+      }
+    }
+  }, []);
+
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark flex items-center justify-center">
@@ -61,8 +75,15 @@ export default function UserProfile() {
            post.authorUsername === user.email;
   });
   
-  // Recent posts from the platform (all posts, already sorted by backend)
-  const recentPosts = posts;
+  // Get recently visited posts (same logic as sidebar) - no limit for infinite scrolling
+  const recentPosts = posts
+    .filter(post => visitedPostIds.includes(post.id))
+    .sort((a, b) => {
+      // Sort by when they were visited (most recent first)
+      const aIndex = visitedPostIds.indexOf(a.id);
+      const bIndex = visitedPostIds.indexOf(b.id);
+      return aIndex - bIndex;
+    });
 
   const userComments = allComments.filter((comment: Comment) => {
     return comment.authorUsername === userIdentifier || 
@@ -168,7 +189,7 @@ export default function UserProfile() {
                     No posts yet
                   </div>
                 ) : (
-                  recentPosts.slice(0, 5).map((post) => (
+                  recentPosts.map((post) => (
                     <div
                       key={post.id}
                       className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors"
@@ -210,7 +231,7 @@ export default function UserProfile() {
                     No saved posts yet
                   </div>
                 ) : (
-                  savedPosts.slice(0, 5).map((post) => (
+                  savedPosts.map((post) => (
                     <div
                       key={post.id}
                       className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors"
@@ -252,7 +273,7 @@ export default function UserProfile() {
                     No comments yet
                   </div>
                 ) : (
-                  userComments.slice(0, 5).map((comment) => (
+                  userComments.map((comment) => (
                     <div
                       key={comment.id}
                       className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors"

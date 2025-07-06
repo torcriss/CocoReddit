@@ -123,6 +123,8 @@ Changelog:
 - July 06, 2025. Fixed Recent Posts section on User Profile page to show all platform posts instead of user-specific posts
 - July 06, 2025. Implemented infinite scrolling on homepage with pagination (10 posts per page)
 - July 06, 2025. Made Recent Posts section in sidebar truly infinite - shows all visited posts without limit
+- July 06, 2025. Fixed Recent Posts ordering consistency between homepage sidebar and profile page using visited posts logic
+- July 06, 2025. Made all User Profile page sections infinite: Recent Posts, Saved Posts, and Recent Comments (removed 5-item limits)
 ```
 
 ## User Preferences
