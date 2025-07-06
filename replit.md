@@ -109,6 +109,9 @@ Changelog:
 - July 06, 2025. Added User Profile page accessible by clicking username in header
 - July 06, 2025. Moved About section from sidebar to User Profile page
 - July 06, 2025. Improved voting UI with Reddit-style orange/purple color scheme
+- July 06, 2025. Added back button to User Profile page for easy homepage navigation
+- July 06, 2025. Removed About section from User Profile page for cleaner interface
+- July 06, 2025. Updated comment button behavior to navigate to post detail pages
 ```
 
 ## User Preferences

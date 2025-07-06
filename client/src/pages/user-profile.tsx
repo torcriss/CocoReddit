@@ -2,13 +2,15 @@ import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { MessageCircle, ChevronUp, Calendar, User } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { MessageCircle, ChevronUp, Calendar, User, ArrowLeft } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
+import { useLocation } from "wouter";
 import type { Post, Comment } from "@shared/schema";
 
 export default function UserProfile() {
   const { user, isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
 
   const { data: posts = [] } = useQuery<Post[]>({
     queryKey: ["/api/posts"],
@@ -71,6 +73,18 @@ export default function UserProfile() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark">
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {/* Back Button */}
+        <div className="mb-6">
+          <Button
+            variant="ghost"
+            onClick={() => setLocation("/")}
+            className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            <span>Back to Homepage</span>
+          </Button>
+        </div>
+
         {/* Profile Header */}
         <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700 mb-6">
           <CardContent className="p-6">
@@ -205,58 +219,6 @@ export default function UserProfile() {
             </CardContent>
           </Card>
         </div>
-
-        {/* About Section */}
-        <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700 mt-6">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-              About
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                  Reddit Clone - Personal Social Platform
-                </h4>
-                <p className="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                  Welcome to your personal Reddit-style community platform! This is a space where you can 
-                  share thoughts, engage in discussions, and connect with like-minded individuals. 
-                  Create posts, join conversations through comments, and use the voting system to 
-                  highlight the best content.
-                </p>
-              </div>
-              
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                  Features
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">Posts & Comments</Badge>
-                  <Badge variant="secondary">Voting System</Badge>
-                  <Badge variant="secondary">Community Subreddits</Badge>
-                  <Badge variant="secondary">Search & Discovery</Badge>
-                  <Badge variant="secondary">Dark Mode</Badge>
-                  <Badge variant="secondary">Responsive Design</Badge>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-medium text-gray-900 dark:text-white mb-2">
-                  How to Use
-                </h4>
-                <ul className="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-                  <li>• Browse posts in different communities using the sidebar</li>
-                  <li>• Create new posts using the "Create" button in the header</li>
-                  <li>• Vote on posts and comments to show your appreciation</li>
-                  <li>• Join discussions by adding thoughtful comments</li>
-                  <li>• Use the search feature to find specific content</li>
-                  <li>• Toggle between light and dark themes for your preference</li>
-                </ul>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </div>
     </div>
   );
