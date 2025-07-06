@@ -54,7 +54,54 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   return (
     <aside className="w-80 hidden lg:block">
       <div className="sticky top-20 space-y-4">
-        {/* Sidebar content removed as requested */}
+        {/* Recent Posts */}
+        <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
+              Recent Posts
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-3">
+              {recentPosts.length === 0 ? (
+                <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                  No recent posts
+                </div>
+              ) : (
+                recentPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    onClick={() => setLocation(`/post/${post.id}`)}
+                    className="p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-reddit-blue font-medium mb-1">
+                          r/{getSubredditName(post.subredditId || undefined)}
+                        </div>
+                        <div className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-2">
+                          {post.title}
+                        </div>
+                        <div className="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
+                          <div className="flex items-center space-x-1">
+                            <ChevronUp className="h-3 w-3" />
+                            <span>{post.votes || 0}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <MessageCircle className="h-3 w-3" />
+                            <span>{post.commentCount || 0}</span>
+                          </div>
+                          <span>•</span>
+                          <span>{formatTimeAgo(post.createdAt)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </aside>
   );
