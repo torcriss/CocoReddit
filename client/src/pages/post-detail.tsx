@@ -57,7 +57,7 @@ export default function PostDetail() {
 
   // Check if post is saved by the user
   const { data: isSaved } = useQuery({
-    queryKey: ["/api/saved-posts", id],
+    queryKey: ["/api/saved-posts", parseInt(id!)],
     queryFn: async () => {
       if (!isAuthenticated || !user) return false;
       try {
@@ -127,8 +127,8 @@ export default function PostDetail() {
       return { previousSaved: currentSaved };
     },
     onSuccess: () => {
-      // Invalidate saved posts queries
-      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts", id] });
+      // Invalidate all related saved posts queries with consistent cache keys
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts", parseInt(id!)] });
       queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
       
       const currentSaved = optimisticSaved !== null ? optimisticSaved : !!isSaved;

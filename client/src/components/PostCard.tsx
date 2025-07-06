@@ -178,7 +178,7 @@ export default function PostCard({ post }: PostCardProps) {
       return { previousSaved: currentSaved };
     },
     onSuccess: () => {
-      // Invalidate saved posts queries
+      // Invalidate all related saved posts queries
       queryClient.invalidateQueries({ queryKey: ["/api/saved-posts", post.id] });
       queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
       
