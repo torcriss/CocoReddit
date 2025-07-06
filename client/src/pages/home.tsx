@@ -166,107 +166,108 @@ export default function Home() {
         <div className="flex gap-6">
           {/* Main Content */}
           <main className="flex-1 min-w-0">
-            {/* Sort Options */}
-            <div className="bg-white dark:bg-reddit-darker rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-6">
-              {viewMode === "popular" && (
-                <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
-                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
-                    <TrendingUp className="h-5 w-5 text-reddit-orange" />
-                    <span>Popular Posts</span>
-                  </h2>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                    Showing the most upvoted posts across all communities
-                  </p>
-                </div>
-              )}
-              
-              {selectedSubreddit && selectedSubredditData && (
-                <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-reddit-blue rounded-full flex items-center justify-center">
-                        <span className="text-white font-bold text-sm">
-                          {selectedSubredditData.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          r/{selectedSubredditData.name}
-                        </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          {selectedSubredditData.description || "Community posts"}
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setSelectedSubreddit(null)}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-gray-300 hover:border-gray-400"
-                    >
-                      View All Posts
-                    </Button>
+            {/* Context Headers - Only show when specific conditions are met */}
+            {(viewMode === "popular" || selectedSubreddit || showUserPosts || showUserComments) && (
+              <div className="bg-white dark:bg-reddit-darker rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-6">
+                {viewMode === "popular" && (
+                  <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
+                      <TrendingUp className="h-5 w-5 text-reddit-orange" />
+                      <span>Popular Posts</span>
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      Showing the most upvoted posts across all communities
+                    </p>
                   </div>
-                </div>
-              )}
-
-              {showUserPosts && user && (
-                <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-                        <User className="h-5 w-5 text-white" />
+                )}
+                
+                {selectedSubreddit && selectedSubredditData && (
+                  <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-reddit-blue rounded-full flex items-center justify-center">
+                          <span className="text-white font-bold text-sm">
+                            {selectedSubredditData.name.charAt(0).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            r/{selectedSubredditData.name}
+                          </h2>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            {selectedSubredditData.description || "Community posts"}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          My Posts
-                        </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Posts created by you
-                        </p>
-                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedSubreddit(null)}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-gray-300 hover:border-gray-400"
+                      >
+                        View All Posts
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowUserPosts(false)}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-gray-300 hover:border-gray-400"
-                    >
-                      View All Posts
-                    </Button>
                   </div>
-                </div>
-              )}
+                )}
 
-              {showUserComments && user && (
-                <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
-                        <MessageCircle className="h-5 w-5 text-white" />
+                {showUserPosts && user && (
+                  <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                          <User className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            My Posts
+                          </h2>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Posts created by you
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                          My Comments
-                        </h2>
-                        <p className="text-sm text-gray-600 dark:text-gray-400">
-                          Comments created by you
-                        </p>
-                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowUserPosts(false)}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-gray-300 hover:border-gray-400"
+                      >
+                        View All Posts
+                      </Button>
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowUserComments(false)}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-gray-300 hover:border-gray-400"
-                    >
-                      View All Posts
-                    </Button>
                   </div>
-                </div>
-              )}
+                )}
 
-            </div>
+                {showUserComments && user && (
+                  <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center">
+                          <MessageCircle className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            My Comments
+                          </h2>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Comments created by you
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowUserComments(false)}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-gray-300 hover:border-gray-400"
+                      >
+                        View All Posts
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Posts or Comments */}
             {showUserComments ? (
