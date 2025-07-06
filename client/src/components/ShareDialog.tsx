@@ -3,6 +3,7 @@ import { Copy, Facebook, Twitter, Mail, MessageCircle, Check } from "lucide-reac
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -90,6 +91,9 @@ export default function ShareDialog({ open, onOpenChange, postId, postTitle }: S
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Share post</DialogTitle>
+          <DialogDescription>
+            Share this post with others via social media, email, or copy the link.
+          </DialogDescription>
         </DialogHeader>
         
         <div className="space-y-4">

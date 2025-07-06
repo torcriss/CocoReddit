@@ -6,6 +6,7 @@ import { z } from "zod";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -90,6 +91,9 @@ export default function CreatePostDialog({ open, onOpenChange }: CreatePostDialo
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Create a post</DialogTitle>
+          <DialogDescription>
+            Share your thoughts, images, or links with the community.
+          </DialogDescription>
         </DialogHeader>
         
         <Form {...form}>
