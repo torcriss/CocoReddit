@@ -11,9 +11,10 @@ interface SidebarProps {
   selectedSubreddit?: number | null;
   onSubredditSelect?: (subredditId: number | null) => void;
   onShowUserPosts?: () => void;
+  onShowUserComments?: () => void;
 }
 
-export default function Sidebar({ selectedSubreddit, onSubredditSelect, onShowUserPosts }: SidebarProps) {
+export default function Sidebar({ selectedSubreddit, onSubredditSelect, onShowUserPosts, onShowUserComments }: SidebarProps) {
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const { user } = useAuth();
 
@@ -26,8 +27,21 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect, onShowUs
     queryKey: ["/api/posts"],
   });
 
-  // Calculate total comment count from all posts
-  const totalComments = posts.reduce((total, post) => total + (post.commentCount || 0), 0);
+  // Get all comments to count user's comments
+  const { data: allComments = [] } = useQuery<Comment[]>({
+    queryKey: ["/api/comments/all"],
+    queryFn: async () => {
+      // Fetch comments from all posts
+      const commentPromises = posts.map(async (post) => {
+        const response = await fetch(`/api/posts/${post.id}/comments`);
+        if (!response.ok) return [];
+        return response.json();
+      });
+      const commentArrays = await Promise.all(commentPromises);
+      return commentArrays.flat();
+    },
+    enabled: posts.length > 0,
+  });
   
   // Calculate user-specific post count if user is logged in
   const userPosts = user ? posts.filter((post: Post) => {
@@ -38,8 +52,17 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect, onShowUs
            post.authorUsername === (user.firstName || user.email);
   }) : [];
   
+  // Calculate user-specific comment count
+  const userComments = user ? allComments.filter((comment: Comment) => {
+    const userIdentifier = user.firstName || user.email || "anonymous";
+    return comment.authorUsername === userIdentifier || 
+           comment.authorUsername === user.firstName ||
+           comment.authorUsername === user.email ||
+           comment.authorUsername === (user.firstName || user.email);
+  }) : [];
+  
   const displayPostCount = userPosts.length;
-  const totalPosts = posts.length;
+  const displayCommentCount = userComments.length;
 
   const communityColors = [
     "bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500",
@@ -155,9 +178,12 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect, onShowUs
                   <div className="font-semibold text-gray-900 dark:text-white">{displayPostCount}</div>
                   <div className="text-xs text-gray-500 dark:text-gray-400">My Posts</div>
                 </div>
-                <div className="p-2">
-                  <div className="font-semibold text-gray-900 dark:text-white">{totalComments}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">Comments</div>
+                <div 
+                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors"
+                  onClick={() => onShowUserComments?.()}
+                >
+                  <div className="font-semibold text-gray-900 dark:text-white">{displayCommentCount}</div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">My Comments</div>
                 </div>
               </div>
             </CardContent>
