@@ -44,7 +44,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
       // Sort by when they were visited (most recent first)
       const aIndex = visitedPostIds.indexOf(a.id);
       const bIndex = visitedPostIds.indexOf(b.id);
-      return bIndex - aIndex;
+      return aIndex - bIndex;
     })
     .slice(0, 5);
 
