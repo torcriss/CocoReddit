@@ -12,6 +12,7 @@ import type { Post } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { useLocation } from "wouter";
 
 interface PostCardProps {
   post: Post;
@@ -21,6 +22,7 @@ export default function PostCard({ post }: PostCardProps) {
   const [userVote, setUserVote] = useState<number | null>(null);
   const [showComments, setShowComments] = useState(false);
   const [showShareDialog, setShowShareDialog] = useState(false);
+  const [, setLocation] = useLocation();
   const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
@@ -135,7 +137,10 @@ export default function PostCard({ post }: PostCardProps) {
             <span>{formatTimeAgo(post.createdAt)}</span>
           </div>
           
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 hover:text-reddit-blue cursor-pointer">
+          <h2 
+            className="text-lg font-semibold text-gray-900 dark:text-white mb-2 hover:text-reddit-blue cursor-pointer"
+            onClick={() => setLocation(`/post/${post.id}`)}
+          >
             {post.title}
           </h2>
           
