@@ -75,10 +75,44 @@ export class MemStorage implements IStorage {
     defaultSubreddits.forEach(sub => {
       const subreddit: Subreddit = {
         id: this.currentSubredditId++,
-        ...sub,
+        name: sub.name,
+        description: sub.description,
+        memberCount: sub.memberCount,
         createdAt: new Date(),
       };
       this.subreddits.set(subreddit.id, subreddit);
+    });
+
+    // Add some sample posts to demonstrate features
+    const samplePosts = [
+      {
+        title: "Welcome to your personal Reddit clone!",
+        content: "This is your personal space for organizing thoughts, ideas, and discussions. Feel free to create posts, comment, and organize content in subreddits.",
+        authorUsername: "admin",
+        subredditId: 1,
+      },
+      {
+        title: "How to use the share feature",
+        content: "Click the share button on any post to share it via social media, email, or copy the link to clipboard. Perfect for sharing interesting content with friends!",
+        authorUsername: "admin",
+        subredditId: 1,
+      }
+    ];
+
+    samplePosts.forEach(postData => {
+      const post: Post = {
+        id: this.currentPostId++,
+        title: postData.title,
+        content: postData.content,
+        imageUrl: null,
+        linkUrl: null,
+        authorUsername: postData.authorUsername,
+        subredditId: postData.subredditId,
+        votes: Math.floor(Math.random() * 20) + 5,
+        commentCount: 0,
+        createdAt: new Date(Date.now() - Math.random() * 24 * 60 * 60 * 1000), // Random time in last 24h
+      };
+      this.posts.set(post.id, post);
     });
   }
 
@@ -94,7 +128,8 @@ export class MemStorage implements IStorage {
   async createSubreddit(insertSubreddit: InsertSubreddit): Promise<Subreddit> {
     const subreddit: Subreddit = {
       id: this.currentSubredditId++,
-      ...insertSubreddit,
+      name: insertSubreddit.name,
+      description: insertSubreddit.description || null,
       memberCount: 0,
       createdAt: new Date(),
     };
@@ -139,7 +174,12 @@ export class MemStorage implements IStorage {
   async createPost(insertPost: InsertPost): Promise<Post> {
     const post: Post = {
       id: this.currentPostId++,
-      ...insertPost,
+      title: insertPost.title,
+      content: insertPost.content || null,
+      imageUrl: insertPost.imageUrl || null,
+      linkUrl: insertPost.linkUrl || null,
+      authorUsername: insertPost.authorUsername,
+      subredditId: insertPost.subredditId || null,
       votes: 0,
       commentCount: 0,
       createdAt: new Date(),
@@ -192,7 +232,10 @@ export class MemStorage implements IStorage {
 
     const comment: Comment = {
       id: this.currentCommentId++,
-      ...insertComment,
+      content: insertComment.content,
+      authorUsername: insertComment.authorUsername,
+      postId: insertComment.postId || null,
+      parentId: insertComment.parentId || null,
       depth,
       votes: 0,
       createdAt: new Date(),
@@ -250,7 +293,10 @@ export class MemStorage implements IStorage {
   async createVote(insertVote: InsertVote): Promise<Vote> {
     const vote: Vote = {
       id: this.currentVoteId++,
-      ...insertVote,
+      userId: insertVote.userId,
+      postId: insertVote.postId || null,
+      commentId: insertVote.commentId || null,
+      voteType: insertVote.voteType,
     };
     this.votes.set(vote.id, vote);
 

@@ -7,6 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { apiRequest } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 import CommentThread from "./CommentThread";
+import ShareDialog from "./ShareDialog";
 import type { Post } from "@shared/schema";
 
 interface PostCardProps {
@@ -16,6 +17,7 @@ interface PostCardProps {
 export default function PostCard({ post }: PostCardProps) {
   const [userVote, setUserVote] = useState<number | null>(null);
   const [showComments, setShowComments] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const queryClient = useQueryClient();
 
   const voteMutation = useMutation({
@@ -149,6 +151,7 @@ export default function PostCard({ post }: PostCardProps) {
               <Button
                 variant="ghost"
                 size="sm"
+                onClick={() => setShowShareDialog(true)}
                 className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-reddit-dark"
               >
                 <Share className="h-4 w-4" />
@@ -174,6 +177,14 @@ export default function PostCard({ post }: PostCardProps) {
           </Collapsible>
         </div>
       </div>
+
+      {/* Share Dialog */}
+      <ShareDialog
+        open={showShareDialog}
+        onOpenChange={setShowShareDialog}
+        postId={post.id}
+        postTitle={post.title}
+      />
     </Card>
   );
 }

@@ -148,8 +148,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Check if user already voted
       const existingVote = await storage.getVote(
         validatedData.userId,
-        validatedData.postId,
-        validatedData.commentId
+        validatedData.postId || undefined,
+        validatedData.commentId || undefined
       );
 
       if (existingVote) {
