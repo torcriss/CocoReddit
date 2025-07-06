@@ -1,13 +1,13 @@
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Share, Bookmark, ChevronUp, ChevronDown } from "lucide-react";
+import { ArrowLeft, Share, Bookmark, ChevronUp, ChevronDown, BookmarkPlus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Header from "@/components/Header";
 import CommentThread from "@/components/CommentThread";
 import ShareDialog from "@/components/ShareDialog";
 import { formatDistanceToNow } from "date-fns";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useAuth } from "@/hooks/useAuth";
@@ -19,12 +19,13 @@ import { useLocation } from "wouter";
 export default function PostDetail() {
   const { id } = useParams();
   const [userVote, setUserVote] = useState<number | null>(null);
+  const [optimisticSaved, setOptimisticSaved] = useState<boolean | null>(null);
   const [showShareDialog, setShowShareDialog] = useState(false);
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"home" | "popular">("home");
   const queryClient = useQueryClient();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
 
   const { data: post, isLoading } = useQuery<Post>({
@@ -53,6 +54,32 @@ export default function PostDetail() {
     },
     enabled: !!post?.subredditId,
   });
+
+  // Check if post is saved by the user
+  const { data: isSaved } = useQuery({
+    queryKey: ["/api/saved-posts", id],
+    queryFn: async () => {
+      if (!isAuthenticated || !user) return false;
+      try {
+        const response = await fetch(`/api/saved-posts/${id}`);
+        if (response.ok) {
+          const savedPost = await response.json();
+          return !!savedPost;
+        }
+      } catch (error) {
+        // Ignore error, just return false
+      }
+      return false;
+    },
+    enabled: isAuthenticated && !!user && !!id,
+  });
+
+  // Reset optimistic saved state when saved data is updated
+  useEffect(() => {
+    if (isSaved !== undefined) {
+      setOptimisticSaved(null);
+    }
+  }, [isSaved]);
 
   const voteMutation = useMutation({
     mutationFn: async (voteType: number) => {
@@ -86,6 +113,55 @@ export default function PostDetail() {
     },
   });
 
+  const saveMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest("POST", "/api/saved-posts", {
+        postId: parseInt(id!),
+      });
+    },
+    onMutate: async () => {
+      // Optimistic update
+      const currentSaved = optimisticSaved !== null ? optimisticSaved : !!isSaved;
+      setOptimisticSaved(!currentSaved);
+      
+      return { previousSaved: currentSaved };
+    },
+    onSuccess: () => {
+      // Invalidate saved posts queries
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts", id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
+      
+      const currentSaved = optimisticSaved !== null ? optimisticSaved : !!isSaved;
+      toast({
+        title: currentSaved ? "Post saved" : "Post unsaved",
+        description: currentSaved ? "Added to your saved posts" : "Removed from your saved posts",
+      });
+    },
+    onError: (error: Error, variables, context) => {
+      // Revert optimistic update
+      if (context?.previousSaved !== undefined) {
+        setOptimisticSaved(context.previousSaved);
+      }
+      
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Login Required",
+          description: "You need to login to save posts",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to save post. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleVote = (voteType: number) => {
     if (!isAuthenticated) {
       toast({
@@ -106,6 +182,25 @@ export default function PostDetail() {
     }
   };
 
+  const handleSave = () => {
+    if (!isAuthenticated) {
+      toast({
+        title: "Login Required",
+        description: "You need to login to save posts",
+        variant: "destructive",
+      });
+      setTimeout(() => {
+        window.location.href = "/api/login";
+      }, 500);
+      return;
+    }
+
+    // Don't allow saving while mutation is pending
+    if (saveMutation.isPending) return;
+
+    saveMutation.mutate();
+  };
+
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     setLocation("/"); // Navigate back to home with search
@@ -116,9 +211,14 @@ export default function PostDetail() {
     setLocation("/"); // Navigate back to home with new view mode
   };
 
-  const formatTimeAgo = (dateStr: string | Date) => {
+  const formatTimeAgo = (dateStr: string | Date | null) => {
+    if (!dateStr) return "unknown";
     const date = typeof dateStr === 'string' ? new Date(dateStr) : dateStr;
-    return formatDistanceToNow(date, { addSuffix: true });
+    try {
+      return formatDistanceToNow(date, { addSuffix: true });
+    } catch (error) {
+      return "unknown";
+    }
   };
 
   if (isLoading) {
@@ -278,10 +378,20 @@ export default function PostDetail() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="flex items-center space-x-1 text-xs text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-reddit-dark"
+                  onClick={handleSave}
+                  disabled={saveMutation.isPending}
+                  className={`flex items-center space-x-1 text-xs hover:bg-gray-100 dark:hover:bg-reddit-dark ${
+                    (optimisticSaved !== null ? optimisticSaved : !!isSaved) 
+                      ? 'text-orange-500 dark:text-orange-400' 
+                      : 'text-gray-500 dark:text-gray-400'
+                  }`}
                 >
-                  <Bookmark className="h-4 w-4" />
-                  <span>Save</span>
+                  {saveMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <BookmarkPlus className="h-4 w-4" />
+                  )}
+                  <span>{(optimisticSaved !== null ? optimisticSaved : !!isSaved) ? 'Saved' : 'Save'}</span>
                 </Button>
               </div>
             </div>
