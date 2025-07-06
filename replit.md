@@ -130,6 +130,7 @@ Changelog:
 - July 06, 2025. Applied consistent light blue styling (text-blue-600/text-blue-400) for community names across homepage and profile page
 - July 06, 2025. Enhanced Recent Comments section on profile page to show community, post title, and made clickable to navigate to post details
 - July 06, 2025. Made Recent Comments section styling consistent with Recent Posts and Saved Posts sections by removing "Commented on:" prefix
+- July 06, 2025. Fixed Recent Comments styling to exactly match Recent Posts: post titles now use h3 element with proper font weight and comment text is smaller (text-xs)
 ```
 
 ## User Preferences
