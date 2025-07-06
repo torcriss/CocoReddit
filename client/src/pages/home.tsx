@@ -11,15 +11,17 @@ export default function Home() {
   const [sortBy, setSortBy] = useState("hot");
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<"home" | "popular">("home");
+  const [selectedSubreddit, setSelectedSubreddit] = useState<number | null>(null);
 
   const { data: posts = [], isLoading } = useQuery<Post[]>({
-    queryKey: ["/api/posts", { sortBy, search: searchQuery, viewMode }],
+    queryKey: ["/api/posts", { sortBy, search: searchQuery, viewMode, subredditId: selectedSubreddit }],
     queryFn: async () => {
       const params = new URLSearchParams();
       // In popular mode, force "top" sorting and show all posts
       const effectiveSort = viewMode === "popular" ? "top" : sortBy;
       params.append("sortBy", effectiveSort);
       if (searchQuery) params.append("search", searchQuery);
+      if (selectedSubreddit) params.append("subredditId", selectedSubreddit.toString());
       
       const response = await fetch(`/api/posts?${params}`);
       if (!response.ok) throw new Error("Failed to fetch posts");
@@ -56,6 +58,24 @@ export default function Home() {
                   <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                     Showing the most upvoted posts across all communities
                   </p>
+                </div>
+              )}
+              
+              {selectedSubreddit && (
+                <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Filtering by Community
+                    </h2>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setSelectedSubreddit(null)}
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                    >
+                      Clear Filter
+                    </Button>
+                  </div>
                 </div>
               )}
               <div className="flex items-center justify-between">
@@ -121,7 +141,10 @@ export default function Home() {
           </main>
 
           {/* Sidebar */}
-          <Sidebar />
+          <Sidebar 
+            selectedSubreddit={selectedSubreddit}
+            onSubredditSelect={setSelectedSubreddit}
+          />
         </div>
       </div>
     </div>

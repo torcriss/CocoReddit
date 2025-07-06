@@ -6,7 +6,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CreatePostDialog from "./CreatePostDialog";
 import type { Subreddit } from "@shared/schema";
 
-export default function Sidebar() {
+interface SidebarProps {
+  selectedSubreddit?: number | null;
+  onSubredditSelect?: (subredditId: number | null) => void;
+}
+
+export default function Sidebar({ selectedSubreddit, onSubredditSelect }: SidebarProps) {
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
 
   const { data: subreddits = [] } = useQuery<Subreddit[]>({
@@ -45,6 +50,28 @@ export default function Sidebar() {
             </CardHeader>
             <CardContent className="pt-0">
               <div className="space-y-2">
+                {/* All Communities Option */}
+                <div
+                  onClick={() => onSubredditSelect?.(null)}
+                  className={`flex items-center space-x-2 p-2 rounded-md cursor-pointer ${
+                    selectedSubreddit === null 
+                      ? 'bg-reddit-blue/10 border border-reddit-blue/20' 
+                      : 'hover:bg-gray-50 dark:hover:bg-reddit-dark'
+                  }`}
+                >
+                  <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">A</span>
+                  </div>
+                  <div>
+                    <div className="font-medium text-gray-900 dark:text-white">
+                      All Communities
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
+                      All posts
+                    </div>
+                  </div>
+                </div>
+
                 {subreddits.map((subreddit, index) => {
                   const colorClass = communityColors[index % communityColors.length];
                   const memberCount = subreddit.memberCount || 0;
@@ -53,11 +80,18 @@ export default function Sidebar() {
                     : memberCount >= 1000 
                     ? `${(memberCount / 1000).toFixed(1)}k` 
                     : memberCount.toString();
+                  
+                  const isSelected = selectedSubreddit === subreddit.id;
 
                   return (
                     <div
                       key={subreddit.id}
-                      className="flex items-center space-x-2 p-2 hover:bg-gray-50 dark:hover:bg-reddit-dark rounded-md cursor-pointer"
+                      onClick={() => onSubredditSelect?.(subreddit.id)}
+                      className={`flex items-center space-x-2 p-2 rounded-md cursor-pointer ${
+                        isSelected 
+                          ? 'bg-reddit-blue/10 border border-reddit-blue/20' 
+                          : 'hover:bg-gray-50 dark:hover:bg-reddit-dark'
+                      }`}
                     >
                       <div className={`w-8 h-8 ${colorClass} rounded-full flex items-center justify-center`}>
                         <span className="text-white font-bold text-sm">
@@ -65,7 +99,7 @@ export default function Sidebar() {
                         </span>
                       </div>
                       <div>
-                        <div className="font-medium text-gray-900 dark:text-white">
+                        <div className={`font-medium ${isSelected ? 'text-reddit-blue' : 'text-gray-900 dark:text-white'}`}>
                           r/{subreddit.name}
                         </div>
                         <div className="text-xs text-gray-500 dark:text-gray-400">
