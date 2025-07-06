@@ -14,6 +14,11 @@ export default function UserProfile() {
 
   const { data: posts = [] } = useQuery<Post[]>({
     queryKey: ["/api/posts"],
+    queryFn: async () => {
+      const response = await fetch("/api/posts?sortBy=hot");
+      if (!response.ok) throw new Error("Failed to fetch posts");
+      return response.json();
+    },
   });
 
   const { data: allComments = [] } = useQuery<Comment[]>({
@@ -56,13 +61,8 @@ export default function UserProfile() {
            post.authorUsername === user.email;
   });
   
-  // Recent posts from the platform (all posts, sorted by newest)
-  const recentPosts = [...posts].sort((a, b) => {
-    if (!a.createdAt && !b.createdAt) return 0;
-    if (!a.createdAt) return 1;
-    if (!b.createdAt) return -1;
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+  // Recent posts from the platform (all posts, already sorted by backend)
+  const recentPosts = posts;
 
   const userComments = allComments.filter((comment: Comment) => {
     return comment.authorUsername === userIdentifier || 
