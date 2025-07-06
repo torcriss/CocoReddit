@@ -29,6 +29,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/subreddits/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const subreddit = await storage.getSubreddit(id);
+      if (!subreddit) {
+        return res.status(404).json({ error: "Subreddit not found" });
+      }
+      res.json(subreddit);
+    } catch (error) {
+      res.status(500).json({ error: "Failed to fetch subreddit" });
+    }
+  });
+
   app.post("/api/subreddits", isAuthenticated, async (req, res) => {
     try {
       const validatedData = insertSubredditSchema.parse(req.body);

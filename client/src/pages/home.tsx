@@ -29,6 +29,16 @@ export default function Home() {
     },
   });
 
+  // Get all subreddits to find the selected one
+  const { data: subreddits = [] } = useQuery({
+    queryKey: ["/api/subreddits"],
+  });
+
+  // Find the selected subreddit from the list
+  const selectedSubredditData = selectedSubreddit 
+    ? subreddits.find(s => s.id === selectedSubreddit)
+    : null;
+
   const sortOptions = [
     { key: "hot", label: "Hot", icon: Flame },
     { key: "new", label: "New", icon: Clock },
@@ -61,19 +71,31 @@ export default function Home() {
                 </div>
               )}
               
-              {selectedSubreddit && (
+              {selectedSubreddit && selectedSubredditData && (
                 <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
                   <div className="flex items-center justify-between">
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Filtering by Community
-                    </h2>
+                    <div className="flex items-center space-x-3">
+                      <div className="w-10 h-10 bg-reddit-blue rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">
+                          {selectedSubredditData.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                          r/{selectedSubredditData.name}
+                        </h2>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {selectedSubredditData.description || "Community posts"}
+                        </p>
+                      </div>
+                    </div>
                     <Button
-                      variant="ghost"
+                      variant="outline"
                       size="sm"
                       onClick={() => setSelectedSubreddit(null)}
-                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-gray-300 hover:border-gray-400"
                     >
-                      Clear Filter
+                      View All Posts
                     </Button>
                   </div>
                 </div>
