@@ -1,200 +1,169 @@
-import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { MessageCircle, ChevronUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import CreatePostDialog from "./CreatePostDialog";
-import { useAuth } from "@/hooks/useAuth";
-import type { Subreddit, Post, Comment } from "@shared/schema";
+import { useLocation } from "wouter";
+import { formatDistanceToNow } from "date-fns";
+import type { Subreddit, Post } from "@shared/schema";
 
 interface SidebarProps {
   selectedSubreddit?: number | null;
   onSubredditSelect?: (subredditId: number | null) => void;
-  onShowUserPosts?: () => void;
-  onShowUserComments?: () => void;
 }
 
-export default function Sidebar({ selectedSubreddit, onSubredditSelect, onShowUserPosts, onShowUserComments }: SidebarProps) {
-  const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
-  const { user } = useAuth();
+export default function Sidebar({ selectedSubreddit, onSubredditSelect }: SidebarProps) {
+  const [, setLocation] = useLocation();
 
   const { data: subreddits = [] } = useQuery<Subreddit[]>({
     queryKey: ["/api/subreddits"],
   });
 
-  // Get all posts to count them
+  // Get all posts for recent posts section
   const { data: posts = [] } = useQuery<Post[]>({
     queryKey: ["/api/posts"],
   });
 
-  // Get all comments to count user's comments
-  const { data: allComments = [] } = useQuery<Comment[]>({
-    queryKey: ["/api/comments/all"],
-    queryFn: async () => {
-      // Fetch comments from all posts
-      const commentPromises = posts.map(async (post) => {
-        const response = await fetch(`/api/posts/${post.id}/comments`);
-        if (!response.ok) return [];
-        return response.json();
-      });
-      const commentArrays = await Promise.all(commentPromises);
-      return commentArrays.flat();
-    },
-    enabled: posts.length > 0,
-  });
-  
-  // Calculate user-specific post count if user is logged in
-  const userPosts = user ? posts.filter((post: Post) => {
-    const userIdentifier = user.firstName || user.email || "anonymous";
-    return post.authorUsername === userIdentifier || 
-           post.authorUsername === user.firstName ||
-           post.authorUsername === user.email ||
-           post.authorUsername === (user.firstName || user.email);
-  }) : [];
-  
-  // Calculate user-specific comment count
-  const userComments = user ? allComments.filter((comment: Comment) => {
-    const userIdentifier = user.firstName || user.email || "anonymous";
-    return comment.authorUsername === userIdentifier || 
-           comment.authorUsername === user.firstName ||
-           comment.authorUsername === user.email ||
-           comment.authorUsername === (user.firstName || user.email);
-  }) : [];
-  
-  const displayPostCount = userPosts.length;
-  const displayCommentCount = userComments.length;
+  // Get recent posts (latest 5)
+  const recentPosts = posts
+    .sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    })
+    .slice(0, 5);
 
   const communityColors = [
     "bg-blue-500", "bg-green-500", "bg-purple-500", "bg-orange-500",
     "bg-red-500", "bg-yellow-500", "bg-pink-500", "bg-indigo-500"
   ];
 
-  return (
-    <>
-      <aside className="w-80 hidden lg:block">
-        <div className="sticky top-20 space-y-4">
-          {/* Create Post */}
-          <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-gray-900 dark:text-white mb-3">Create Post</h3>
-              <Button
-                onClick={() => setIsCreatePostOpen(true)}
-                className="w-full flex items-center justify-center space-x-2 bg-reddit-blue text-white hover:bg-reddit-blue/90"
-              >
-                <Plus className="h-4 w-4" />
-                <span>Create Post</span>
-              </Button>
-            </CardContent>
-          </Card>
+  const formatTimeAgo = (date: Date | null) => {
+    try {
+      if (!date) return "just now";
+      return formatDistanceToNow(new Date(date), { addSuffix: true });
+    } catch {
+      return "just now";
+    }
+  };
 
-          {/* Popular Communities */}
-          <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
-                Popular Communities
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-2">
-                {/* All Communities Option */}
+  const getSubredditName = (subredditId?: number | null) => {
+    if (!subredditId) return "general";
+    const subreddit = subreddits.find(s => s.id === subredditId);
+    return subreddit?.name || "general";
+  };
+
+  return (
+    <aside className="w-80 hidden lg:block">
+      <div className="sticky top-20 space-y-4">
+        {/* Popular Communities */}
+        <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
+              Popular Communities
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-2">
+              {/* All Communities Option */}
+              <div
+                onClick={() => onSubredditSelect?.(null)}
+                className={`flex items-center space-x-2 p-2 rounded-md cursor-pointer ${
+                  selectedSubreddit === null 
+                    ? 'bg-reddit-blue/10 border border-reddit-blue/20' 
+                    : 'hover:bg-gray-50 dark:hover:bg-reddit-dark'
+                }`}
+              >
+                <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">A</span>
+                </div>
+                <div>
+                  <div className="font-medium text-gray-900 dark:text-white">
+                    All Communities
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    All posts
+                  </div>
+                </div>
+              </div>
+
+              {/* Subreddit List */}
+              {subreddits.map((subreddit, index) => (
                 <div
-                  onClick={() => onSubredditSelect?.(null)}
+                  key={subreddit.id}
+                  onClick={() => onSubredditSelect?.(subreddit.id)}
                   className={`flex items-center space-x-2 p-2 rounded-md cursor-pointer ${
-                    selectedSubreddit === null 
+                    selectedSubreddit === subreddit.id 
                       ? 'bg-reddit-blue/10 border border-reddit-blue/20' 
                       : 'hover:bg-gray-50 dark:hover:bg-reddit-dark'
                   }`}
                 >
-                  <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">A</span>
+                  <div className={`w-8 h-8 ${communityColors[index % communityColors.length]} rounded-full flex items-center justify-center`}>
+                    <span className="text-white font-bold text-sm">
+                      {subreddit.name.charAt(0).toUpperCase()}
+                    </span>
                   </div>
                   <div>
                     <div className="font-medium text-gray-900 dark:text-white">
-                      All Communities
+                      r/{subreddit.name}
                     </div>
                     <div className="text-xs text-gray-500 dark:text-gray-400">
-                      All posts
+                      {subreddit.memberCount?.toLocaleString() || 0} members
                     </div>
                   </div>
                 </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
 
-                {subreddits.map((subreddit, index) => {
-                  const colorClass = communityColors[index % communityColors.length];
-                  const memberCount = subreddit.memberCount || 0;
-                  const formattedCount = memberCount >= 1000000 
-                    ? `${(memberCount / 1000000).toFixed(1)}M` 
-                    : memberCount >= 1000 
-                    ? `${(memberCount / 1000).toFixed(1)}k` 
-                    : memberCount.toString();
-                  
-                  const isSelected = selectedSubreddit === subreddit.id;
-
-                  return (
-                    <div
-                      key={subreddit.id}
-                      onClick={() => onSubredditSelect?.(subreddit.id)}
-                      className={`flex items-center space-x-2 p-2 rounded-md cursor-pointer ${
-                        isSelected 
-                          ? 'bg-reddit-blue/10 border border-reddit-blue/20' 
-                          : 'hover:bg-gray-50 dark:hover:bg-reddit-dark'
-                      }`}
-                    >
-                      <div className={`w-8 h-8 ${colorClass} rounded-full flex items-center justify-center`}>
-                        <span className="text-white font-bold text-sm">
-                          {subreddit.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <div className={`font-medium ${isSelected ? 'text-reddit-blue' : 'text-gray-900 dark:text-white'}`}>
-                          r/{subreddit.name}
+        {/* Recent Posts */}
+        <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
+              Recent Posts
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-0">
+            <div className="space-y-3">
+              {recentPosts.length === 0 ? (
+                <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                  No recent posts
+                </div>
+              ) : (
+                recentPosts.map((post) => (
+                  <div
+                    key={post.id}
+                    onClick={() => setLocation(`/post/${post.id}`)}
+                    className="p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark cursor-pointer transition-colors"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-reddit-blue font-medium mb-1">
+                          r/{getSubredditName(post.subredditId || undefined)}
                         </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400">
-                          {formattedCount} members
+                        <div className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-2">
+                          {post.title}
+                        </div>
+                        <div className="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
+                          <div className="flex items-center space-x-1">
+                            <ChevronUp className="h-3 w-3" />
+                            <span>{post.votes || 0}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <MessageCircle className="h-3 w-3" />
+                            <span>{post.commentCount || 0}</span>
+                          </div>
+                          <span>•</span>
+                          <span>{formatTimeAgo(post.createdAt)}</span>
                         </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* About */}
-          <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
-                About
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="pt-0">
-              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Your personal Reddit clone for organizing and discussing topics that matter to you.
-              </p>
-              <div className="grid grid-cols-2 gap-4 text-center">
-                <div 
-                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors"
-                  onClick={() => onShowUserPosts?.()}
-                >
-                  <div className="font-semibold text-gray-900 dark:text-white">{displayPostCount}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">My Posts</div>
-                </div>
-                <div 
-                  className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-2 rounded-md transition-colors"
-                  onClick={() => onShowUserComments?.()}
-                >
-                  <div className="font-semibold text-gray-900 dark:text-white">{displayCommentCount}</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">My Comments</div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </aside>
-
-      <CreatePostDialog 
-        open={isCreatePostOpen} 
-        onOpenChange={setIsCreatePostOpen} 
-      />
-    </>
+                  </div>
+                ))
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </aside>
   );
 }

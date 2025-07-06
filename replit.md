@@ -104,6 +104,11 @@ Changelog:
 - July 06, 2025. Integrated PostgreSQL database with persistent storage
 - July 06, 2025. Implemented Popular/Home navigation with visual indicators
 - July 06, 2025. Made logo clickable to navigate to home view
+- July 06, 2025. Enhanced Create button with visible orange styling and "Create" text label
+- July 06, 2025. Replaced sidebar Create Post section with Recent Posts display
+- July 06, 2025. Added User Profile page accessible by clicking username in header
+- July 06, 2025. Moved About section from sidebar to User Profile page
+- July 06, 2025. Improved voting UI with Reddit-style orange/purple color scheme
 ```
 
 ## User Preferences

@@ -6,6 +6,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { useTheme } from "./ThemeProvider";
 import CreatePostDialog from "./CreatePostDialog";
 import { useAuth } from "@/hooks/useAuth";
+import { useLocation } from "wouter";
 import type { User } from "@shared/schema";
 
 interface HeaderProps {
@@ -21,6 +22,7 @@ export default function Header({ onSearch, viewMode = "home", onViewModeChange, 
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated } = useAuth();
+  const [, setLocation] = useLocation();
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,12 +133,13 @@ export default function Header({ onSearch, viewMode = "home", onViewModeChange, 
             <div className="flex items-center space-x-3">
               {isAuthenticated && (
                 <Button
-                  variant="ghost"
+                  variant="default"
                   size="sm"
                   onClick={() => setIsCreatePostOpen(true)}
-                  className="text-gray-500 dark:text-gray-400 hover:text-reddit-blue"
+                  className="flex items-center space-x-2 bg-reddit-orange hover:bg-reddit-orange/90 text-white font-medium px-4 py-2 rounded-full shadow-sm"
                 >
-                  <Plus className="h-6 w-6" />
+                  <Plus className="h-4 w-4" />
+                  <span>Create</span>
                 </Button>
               )}
               
@@ -157,19 +160,27 @@ export default function Header({ onSearch, viewMode = "home", onViewModeChange, 
               {/* Auth Section */}
               {isAuthenticated ? (
                 <div className="flex items-center space-x-2">
-                  {user?.profileImageUrl ? (
-                    <img 
-                      src={user.profileImageUrl} 
-                      alt="Profile" 
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-8 h-8 bg-reddit-blue rounded-full flex items-center justify-center">
-                      <span className="text-white font-bold text-sm">
-                        {user?.firstName?.[0] || user?.email?.[0] || "U"}
-                      </span>
-                    </div>
-                  )}
+                  <div 
+                    onClick={() => setLocation("/profile")}
+                    className="flex items-center space-x-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-reddit-dark rounded-md px-2 py-1 transition-colors"
+                  >
+                    {user?.profileImageUrl ? (
+                      <img 
+                        src={user.profileImageUrl} 
+                        alt="Profile" 
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-8 h-8 bg-reddit-blue rounded-full flex items-center justify-center">
+                        <span className="text-white font-bold text-sm">
+                          {user?.firstName?.[0] || user?.email?.[0] || "U"}
+                        </span>
+                      </div>
+                    )}
+                    <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      {user?.firstName || user?.email?.split('@')[0] || 'User'}
+                    </span>
+                  </div>
                   <Button
                     variant="ghost"
                     size="sm"
