@@ -141,6 +141,7 @@ Changelog:
 - July 06, 2025. Fixed search functionality: proper search clearing when switching views/filters and added search results indicator with clear button
 - July 06, 2025. Improved search to be case-insensitive and search both post titles and content for better results
 - July 07, 2025. Added green comment icon visual indicator for posts where the user has commented
+- July 07, 2025. Updated Recent Posts section to automatically show newly created posts at the top
 ```
 
 ## User Preferences

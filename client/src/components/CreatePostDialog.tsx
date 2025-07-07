@@ -80,8 +80,25 @@ export default function CreatePostDialog({ open, onOpenChange }: CreatePostDialo
       };
       return apiRequest("POST", "/api/posts", postData);
     },
-    onSuccess: () => {
+    onSuccess: (newPost) => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
+      
+      // Add the new post to visited posts at the top
+      const stored = localStorage.getItem('visitedPosts');
+      let visitedIds: number[] = [];
+      if (stored) {
+        try {
+          visitedIds = JSON.parse(stored);
+        } catch {
+          visitedIds = [];
+        }
+      }
+      const newVisitedIds = [newPost.id, ...visitedIds.filter(id => id !== newPost.id)];
+      localStorage.setItem('visitedPosts', JSON.stringify(newVisitedIds));
+      
+      // Trigger custom event to update sidebar immediately
+      window.dispatchEvent(new Event('visitedPostsUpdated'));
+      
       form.reset();
       onOpenChange(false);
     },

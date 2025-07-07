@@ -25,16 +25,42 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     queryKey: ["/api/posts"],
   });
 
-  // Load visited posts from localStorage on component mount
+  // Load visited posts from localStorage on component mount and listen for changes
   useEffect(() => {
-    const stored = localStorage.getItem('visitedPosts');
-    if (stored) {
-      try {
-        setVisitedPostIds(JSON.parse(stored));
-      } catch {
-        setVisitedPostIds([]);
+    const loadVisitedPosts = () => {
+      const stored = localStorage.getItem('visitedPosts');
+      if (stored) {
+        try {
+          setVisitedPostIds(JSON.parse(stored));
+        } catch {
+          setVisitedPostIds([]);
+        }
       }
-    }
+    };
+
+    // Load initially
+    loadVisitedPosts();
+
+    // Listen for storage changes (when new posts are created)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'visitedPosts') {
+        loadVisitedPosts();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    // Also listen for manual localStorage updates from same tab
+    const handleCustomUpdate = () => {
+      loadVisitedPosts();
+    };
+
+    window.addEventListener('visitedPostsUpdated', handleCustomUpdate);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('visitedPostsUpdated', handleCustomUpdate);
+    };
   }, []);
 
   // Get recently visited posts (posts user has clicked on) - no limit for infinite scrolling
@@ -52,6 +78,9 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     const newVisitedIds = [postId, ...visitedPostIds.filter(id => id !== postId)];
     setVisitedPostIds(newVisitedIds);
     localStorage.setItem('visitedPosts', JSON.stringify(newVisitedIds));
+    
+    // Trigger custom event to update any other components listening
+    window.dispatchEvent(new Event('visitedPostsUpdated'));
     setLocation(`/post/${postId}`);
   };
 
