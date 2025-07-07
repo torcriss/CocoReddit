@@ -23,6 +23,31 @@ export default function UserProfile() {
     },
   });
 
+  // Get visited posts specifically (same as sidebar)
+  const { data: visitedPostsData = [] } = useQuery<Post[]>({
+    queryKey: ["/api/posts/visited", visitedPostIds],
+    queryFn: async () => {
+      if (visitedPostIds.length === 0) return [];
+      
+      // Fetch each visited post individually
+      const promises = visitedPostIds.map(async (id) => {
+        try {
+          const response = await fetch(`/api/posts/${id}`);
+          if (response.ok) {
+            return response.json();
+          }
+        } catch (error) {
+          console.error(`Failed to fetch post ${id}:`, error);
+        }
+        return null;
+      });
+      
+      const results = await Promise.all(promises);
+      return results.filter(post => post !== null);
+    },
+    enabled: visitedPostIds.length > 0,
+  });
+
   const { data: allComments = [] } = useQuery<Comment[]>({
     queryKey: ["/api/comments/all", posts.map(p => p.id).sort()],
     queryFn: async () => {
@@ -90,8 +115,8 @@ export default function UserProfile() {
     });
   
   // Visited posts (excluding user's own posts to avoid duplicates)
-  const visitedPosts = posts
-    .filter(post => visitedPostIds.includes(post.id) && post.authorUsername !== userIdentifier)
+  const visitedPosts = visitedPostsData
+    .filter(post => post.authorUsername !== userIdentifier)
     .sort((a, b) => {
       // Sort by when they were visited (most recent first)
       const aIndex = visitedPostIds.indexOf(a.id);

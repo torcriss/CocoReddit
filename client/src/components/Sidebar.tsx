@@ -57,18 +57,14 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   useEffect(() => {
     const loadVisitedPosts = () => {
       const stored = localStorage.getItem('visitedPosts');
-      console.log('Loading visited posts from localStorage:', stored);
       if (stored) {
         try {
           const parsedIds = JSON.parse(stored);
-          console.log('Parsed visited post IDs:', parsedIds);
           setVisitedPostIds(parsedIds);
         } catch {
-          console.log('Failed to parse visited posts, resetting to empty array');
           setVisitedPostIds([]);
         }
       } else {
-        console.log('No visited posts found in localStorage');
         setVisitedPostIds([]);
       }
     };
@@ -92,7 +88,6 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
 
     // Listen for custom storage events
     const handleCustomStorageChange = () => {
-      console.log('Custom visitedPostsChanged event received');
       loadVisitedPosts();
     };
 
@@ -131,15 +126,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   // Combine: user's posts first, then visited posts
   const recentPosts = [...userPosts, ...filteredVisitedPosts];
   
-  console.log('Recent Posts Debug:', {
-    userIdentifier,
-    visitedPostIds,
-    userPostsCount: userPosts.length,
-    visitedPostsCount: filteredVisitedPosts.length,
-    totalRecentPosts: recentPosts.length,
-    availablePostsCount: posts.length,
-    fetchedVisitedPostsCount: visitedPosts.length
-  });
+
 
   const handlePostClick = (postId: number) => {
     // Add to visited posts and update localStorage
