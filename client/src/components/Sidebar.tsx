@@ -198,7 +198,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
               ) : (
                 recentPosts.map((post) => (
                   <div
-                    key={post.id}
+                    key={`sidebar-recent-${post.id}`}
                     onClick={() => handlePostClick(post.id)}
                     className="p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark cursor-pointer transition-colors"
                   >

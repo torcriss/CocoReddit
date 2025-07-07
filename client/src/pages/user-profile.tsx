@@ -237,7 +237,7 @@ export default function UserProfile() {
                 ) : (
                   recentPosts.map((post) => (
                     <div
-                      key={post.id}
+                      key={`profile-recent-${post.id}`}
                       onClick={() => handlePostClick(post.id)}
                       className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors cursor-pointer"
                     >
@@ -287,7 +287,7 @@ export default function UserProfile() {
                 ) : (
                   savedPosts.map((post) => (
                     <div
-                      key={post.id}
+                      key={`profile-saved-${post.id}`}
                       onClick={() => handlePostClick(post.id)}
                       className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors cursor-pointer"
                     >
@@ -339,7 +339,7 @@ export default function UserProfile() {
                     const commentPost = posts.find(p => p.id === comment.postId);
                     return (
                       <div
-                        key={comment.id}
+                        key={`profile-comment-${comment.id}`}
                         onClick={() => {
                           if (comment.postId) {
                             localStorage.setItem('cameFromProfile', 'true');
