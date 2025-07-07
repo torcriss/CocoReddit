@@ -75,7 +75,7 @@ export default function CreatePostDialog({ open, onOpenChange }: CreatePostDialo
         content: data.type === "text" ? data.content : "",
         imageUrl: data.type === "image" ? data.imageUrl : "",
         linkUrl: data.type === "link" ? data.linkUrl : "",
-        authorUsername: data.authorUsername,
+        authorUsername: user?.firstName || user?.email || "anonymous",
         subredditId: data.subredditId,
       };
       return apiRequest("POST", "/api/posts", postData);

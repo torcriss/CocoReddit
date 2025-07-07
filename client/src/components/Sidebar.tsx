@@ -6,6 +6,7 @@ import { useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
 import { useState, useEffect } from "react";
 import type { Subreddit, Post } from "@shared/schema";
+import { useAuth } from "@/hooks/useAuth";
 
 interface SidebarProps {
   selectedSubreddit?: number | null;
@@ -16,6 +17,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   const [, setLocation] = useLocation();
   const [visitedPostIds, setVisitedPostIds] = useState<number[]>([]);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   const { data: subreddits = [] } = useQuery<Subreddit[]>({
     queryKey: ["/api/subreddits"],
@@ -54,15 +56,26 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     };
   }, [queryClient]);
 
-  // Get recently visited posts (posts user has clicked on) - no limit for infinite scrolling
-  const recentPosts = posts
-    .filter(post => visitedPostIds.includes(post.id))
+  // Get user's own posts and visited posts
+  const userIdentifier = user?.firstName || user?.email || "anonymous";
+  
+  // User's own posts (sorted by creation date, newest first)
+  const userPosts = posts
+    .filter(post => post.authorUsername === userIdentifier)
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  
+  // Visited posts (excluding user's own posts to avoid duplicates)
+  const visitedPosts = posts
+    .filter(post => visitedPostIds.includes(post.id) && post.authorUsername !== userIdentifier)
     .sort((a, b) => {
       // Sort by when they were visited (most recent first)
       const aIndex = visitedPostIds.indexOf(a.id);
       const bIndex = visitedPostIds.indexOf(b.id);
       return aIndex - bIndex;
     });
+  
+  // Combine: user's posts first, then visited posts
+  const recentPosts = [...userPosts, ...visitedPosts];
 
   const handlePostClick = (postId: number) => {
     // Add to visited posts and update localStorage
@@ -73,6 +86,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   };
 
   const clearRecentPosts = () => {
+    // Only clear visited posts, not user's own posts
     setVisitedPostIds([]);
     localStorage.removeItem('visitedPosts');
   };
