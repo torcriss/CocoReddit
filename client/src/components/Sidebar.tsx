@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { MessageCircle, ChevronUp, Trash2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ interface SidebarProps {
 export default function Sidebar({ selectedSubreddit, onSubredditSelect }: SidebarProps) {
   const [, setLocation] = useLocation();
   const [visitedPostIds, setVisitedPostIds] = useState<number[]>([]);
+  const queryClient = useQueryClient();
 
   const { data: subreddits = [] } = useQuery<Subreddit[]>({
     queryKey: ["/api/subreddits"],
@@ -25,7 +26,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     queryKey: ["/api/posts"],
   });
 
-  // Load visited posts from localStorage on component mount and listen for changes
+  // Load visited posts from localStorage 
   useEffect(() => {
     const loadVisitedPosts = () => {
       const stored = localStorage.getItem('visitedPosts');
@@ -38,30 +39,20 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
       }
     };
 
-    // Load initially
     loadVisitedPosts();
 
-    // Listen for storage changes (when new posts are created)
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'visitedPosts') {
-        loadVisitedPosts();
+    // Listen for posts query changes to refresh visited posts
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (event.query.queryKey[0] === '/api/posts' && event.type === 'updated') {
+        // Small delay to ensure localStorage is updated by post creation
+        setTimeout(loadVisitedPosts, 100);
       }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-
-    // Also listen for manual localStorage updates from same tab
-    const handleCustomUpdate = () => {
-      loadVisitedPosts();
-    };
-
-    window.addEventListener('visitedPostsUpdated', handleCustomUpdate);
+    });
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
-      window.removeEventListener('visitedPostsUpdated', handleCustomUpdate);
+      unsubscribe();
     };
-  }, []);
+  }, [queryClient]);
 
   // Get recently visited posts (posts user has clicked on) - no limit for infinite scrolling
   const recentPosts = posts
@@ -78,9 +69,6 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     const newVisitedIds = [postId, ...visitedPostIds.filter(id => id !== postId)];
     setVisitedPostIds(newVisitedIds);
     localStorage.setItem('visitedPosts', JSON.stringify(newVisitedIds));
-    
-    // Trigger custom event to update any other components listening
-    window.dispatchEvent(new Event('visitedPostsUpdated'));
     setLocation(`/post/${postId}`);
   };
 

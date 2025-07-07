@@ -96,9 +96,6 @@ export default function CreatePostDialog({ open, onOpenChange }: CreatePostDialo
       const newVisitedIds = [newPost.id, ...visitedIds.filter(id => id !== newPost.id)];
       localStorage.setItem('visitedPosts', JSON.stringify(newVisitedIds));
       
-      // Trigger custom event to update sidebar immediately
-      window.dispatchEvent(new Event('visitedPostsUpdated'));
-      
       form.reset();
       onOpenChange(false);
     },

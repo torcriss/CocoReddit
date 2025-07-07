@@ -310,9 +310,6 @@ export default function PostCard({ post }: PostCardProps) {
             const newVisitedIds = [post.id, ...visitedIds.filter(id => id !== post.id)];
             localStorage.setItem('visitedPosts', JSON.stringify(newVisitedIds));
             
-            // Trigger custom event to update sidebar immediately
-            window.dispatchEvent(new Event('visitedPostsUpdated'));
-            
             setLocation(`/post/${post.id}`);
           }}
         >
