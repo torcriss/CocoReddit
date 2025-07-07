@@ -159,6 +159,7 @@ Changelog:
 - July 07, 2025. Fixed scroll event propagation bug: sidebar scrolling now isolated from main content area to prevent unwanted page scrolling
 - July 07, 2025. Enhanced scroll isolation with boundary detection: prevents scroll propagation when reaching top/bottom of Recent Posts sidebar
 - July 07, 2025. Improved scroll isolation implementation: simplified wheel event handling with overscroll-behavior CSS for better boundary control
+- July 07, 2025. Enhanced sidebar design: added darker background (gray-100/gray-900) with border and improved contrast for better visual separation from main content
 ```
 
 ## User Preferences

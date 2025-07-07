@@ -215,10 +215,10 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   };
 
   return (
-    <aside className="w-80 hidden lg:block">
-      <div className="sticky top-20 space-y-4">
+    <aside className="w-80 hidden lg:block bg-gray-100 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
+      <div className="sticky top-20 space-y-4 p-4">
         {/* Recent Posts */}
-        <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
+        <Card className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-sm">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
@@ -254,7 +254,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
                   <div
                     key={`sidebar-recent-${post.id}`}
                     onClick={() => handlePostClick(post.id)}
-                    className="p-3 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark cursor-pointer transition-colors"
+                    className="p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
