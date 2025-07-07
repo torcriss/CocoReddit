@@ -144,6 +144,7 @@ Changelog:
 - July 07, 2025. Updated Recent Posts section to automatically show newly created posts at the top
 - July 07, 2025. Rebranded platform from "Reddit" to "Coco" with new gradient logo design and updated content
 - July 07, 2025. Loaded comprehensive test dataset: 3,011 posts, 1,010 comments, and 1,000 votes for performance testing
+- July 07, 2025. Removed karma/scoring system from user profiles for cleaner interface
 ```
 
 ## User Preferences

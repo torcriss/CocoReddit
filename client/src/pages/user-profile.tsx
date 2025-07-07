@@ -109,7 +109,7 @@ export default function UserProfile() {
            comment.authorUsername === (user.firstName || user.email);
   });
 
-  const totalVotes = userPosts.reduce((sum, post) => sum + (post.votes || 0), 0);
+
   const displayName = user.firstName || user.email?.split('@')[0] || 'Anonymous';
 
   const formatTimeAgo = (date: Date | null) => {
@@ -172,15 +172,7 @@ export default function UserProfile() {
                     <span>{user.email}</span>
                   </div>
                 </div>
-                <div className="flex items-center space-x-6">
-                  <div className="text-center">
-                    <div className="text-2xl font-bold text-gray-900 dark:text-white">
-                      {totalVotes}
-                    </div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      Total Karma
-                    </div>
-                  </div>
+                <div className="flex items-center space-x-8">
                   <div className="text-center">
                     <div className="text-2xl font-bold text-gray-900 dark:text-white">
                       {userPosts.length}
