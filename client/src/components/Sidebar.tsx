@@ -28,16 +28,48 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     queryKey: ["/api/posts"],
   });
 
+  // Get visited posts specifically
+  const { data: visitedPosts = [] } = useQuery<Post[]>({
+    queryKey: ["/api/posts/visited", visitedPostIds],
+    queryFn: async () => {
+      if (visitedPostIds.length === 0) return [];
+      
+      // Fetch each visited post individually
+      const promises = visitedPostIds.map(async (id) => {
+        try {
+          const response = await fetch(`/api/posts/${id}`);
+          if (response.ok) {
+            return response.json();
+          }
+        } catch (error) {
+          console.error(`Failed to fetch post ${id}:`, error);
+        }
+        return null;
+      });
+      
+      const results = await Promise.all(promises);
+      return results.filter(post => post !== null);
+    },
+    enabled: visitedPostIds.length > 0,
+  });
+
   // Load visited posts from localStorage 
   useEffect(() => {
     const loadVisitedPosts = () => {
       const stored = localStorage.getItem('visitedPosts');
+      console.log('Loading visited posts from localStorage:', stored);
       if (stored) {
         try {
-          setVisitedPostIds(JSON.parse(stored));
+          const parsedIds = JSON.parse(stored);
+          console.log('Parsed visited post IDs:', parsedIds);
+          setVisitedPostIds(parsedIds);
         } catch {
+          console.log('Failed to parse visited posts, resetting to empty array');
           setVisitedPostIds([]);
         }
+      } else {
+        console.log('No visited posts found in localStorage');
+        setVisitedPostIds([]);
       }
     };
 
@@ -60,6 +92,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
 
     // Listen for custom storage events
     const handleCustomStorageChange = () => {
+      console.log('Custom visitedPostsChanged event received');
       loadVisitedPosts();
     };
 
@@ -86,8 +119,8 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     });
   
   // Visited posts (excluding user's own posts to avoid duplicates)
-  const visitedPosts = posts
-    .filter(post => visitedPostIds.includes(post.id) && post.authorUsername !== userIdentifier)
+  const filteredVisitedPosts = visitedPosts
+    .filter(post => post.authorUsername !== userIdentifier)
     .sort((a, b) => {
       // Sort by when they were visited (most recent first)
       const aIndex = visitedPostIds.indexOf(a.id);
@@ -96,7 +129,17 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     });
   
   // Combine: user's posts first, then visited posts
-  const recentPosts = [...userPosts, ...visitedPosts];
+  const recentPosts = [...userPosts, ...filteredVisitedPosts];
+  
+  console.log('Recent Posts Debug:', {
+    userIdentifier,
+    visitedPostIds,
+    userPostsCount: userPosts.length,
+    visitedPostsCount: filteredVisitedPosts.length,
+    totalRecentPosts: recentPosts.length,
+    availablePostsCount: posts.length,
+    fetchedVisitedPostsCount: visitedPosts.length
+  });
 
   const handlePostClick = (postId: number) => {
     // Add to visited posts and update localStorage
