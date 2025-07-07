@@ -1,8 +1,8 @@
-# Reddit Clone Application
+# Coco Social Platform
 
 ## Overview
 
-This is a full-stack Reddit clone built with React, Express.js, and TypeScript. The application features a modern social media interface with posts, comments, voting, and subreddit communities. It uses shadcn/ui components for a polished user interface and implements real-time interactions through React Query.
+This is a full-stack social platform called "Coco" built with React, Express.js, and TypeScript. The application features a modern social media interface with posts, comments, voting, and community features. It uses shadcn/ui components for a polished user interface and implements real-time interactions through React Query.
 
 ## System Architecture
 
@@ -142,6 +142,7 @@ Changelog:
 - July 06, 2025. Improved search to be case-insensitive and search both post titles and content for better results
 - July 07, 2025. Added green comment icon visual indicator for posts where the user has commented
 - July 07, 2025. Updated Recent Posts section to automatically show newly created posts at the top
+- July 07, 2025. Rebranded platform from "Reddit" to "Coco" with new gradient logo design and updated content
 ```
 
 ## User Preferences

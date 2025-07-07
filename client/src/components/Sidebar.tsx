@@ -62,7 +62,11 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   // User's own posts (sorted by creation date, newest first)
   const userPosts = posts
     .filter(post => post.authorUsername === userIdentifier)
-    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    .sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
   
   // Visited posts (excluding user's own posts to avoid duplicates)
   const visitedPosts = posts

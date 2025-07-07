@@ -55,10 +55,10 @@ export default function Header({ onSearch, viewMode = "home", onViewModeChange, 
                 className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
                 onClick={() => onViewModeChange?.("home")}
               >
-                <div className="w-8 h-8 bg-reddit-orange rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold text-sm">R</span>
+                <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
+                  <span className="text-white font-bold text-sm">C</span>
                 </div>
-                <span className="text-xl font-bold text-gray-900 dark:text-white">reddit</span>
+                <span className="text-xl font-bold text-gray-900 dark:text-white">Coco</span>
               </div>
               
               {/* Navigation */}
@@ -124,7 +124,7 @@ export default function Header({ onSearch, viewMode = "home", onViewModeChange, 
               <form onSubmit={handleSearch} className="relative">
                 <Input
                   type="text"
-                  placeholder="Search Reddit"
+                  placeholder="Search Coco"
                   value={localSearchQuery}
                   onChange={(e) => setLocalSearchQuery(e.target.value)}
                   className="w-full pl-10 bg-gray-100 dark:bg-reddit-dark border-gray-300 dark:border-gray-600 rounded-full focus:ring-2 focus:ring-reddit-blue focus:border-transparent"
