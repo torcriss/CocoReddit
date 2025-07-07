@@ -147,6 +147,7 @@ Changelog:
 - July 07, 2025. Removed karma/scoring system from user profiles for cleaner interface
 - July 07, 2025. Fixed comment count bug: updated all 3,011 posts to display correct comment counts throughout platform
 - July 07, 2025. Fixed search functionality on post detail pages: search now properly navigates to homepage with search results
+- July 07, 2025. Fixed Recent Posts section not loading visited posts: implemented localStorage change detection and custom events for real-time updates
 ```
 
 ## User Preferences

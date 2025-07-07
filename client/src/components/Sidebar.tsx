@@ -43,6 +43,13 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
 
     loadVisitedPosts();
 
+    // Listen for localStorage changes (when posts are visited from other components)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'visitedPosts') {
+        loadVisitedPosts();
+      }
+    };
+
     // Listen for posts query changes to refresh visited posts
     const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
       if (event.query.queryKey[0] === '/api/posts' && event.type === 'updated') {
@@ -51,8 +58,18 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
       }
     });
 
+    // Listen for custom storage events
+    const handleCustomStorageChange = () => {
+      loadVisitedPosts();
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('visitedPostsChanged', handleCustomStorageChange);
+
     return () => {
       unsubscribe();
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('visitedPostsChanged', handleCustomStorageChange);
     };
   }, [queryClient]);
 
@@ -86,6 +103,10 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     const newVisitedIds = [postId, ...visitedPostIds.filter(id => id !== postId)];
     setVisitedPostIds(newVisitedIds);
     localStorage.setItem('visitedPosts', JSON.stringify(newVisitedIds));
+    
+    // Dispatch custom event to notify other components
+    window.dispatchEvent(new CustomEvent('visitedPostsChanged'));
+    
     setLocation(`/post/${postId}`);
   };
 
