@@ -67,13 +67,17 @@ export default function Home() {
     initialPageParam: 1,
   });
 
-  // Flatten all pages into a single array
+  // Flatten all pages into a single array and ensure unique posts
   const allPosts = data?.pages.flatMap(page => page) || [];
+  // Remove any duplicate posts that might come from pagination issues
+  const uniquePosts = allPosts.filter((post, index, self) => 
+    index === self.findIndex((p) => p.id === post.id)
+  );
 
   // Apply popular mode filter (client-side since it's a UI state)
   const filteredAndSortedPosts = viewMode === "popular" 
-    ? allPosts.filter((post: Post) => (post.votes || 0) >= 1)
-    : allPosts;
+    ? uniquePosts.filter((post: Post) => (post.votes || 0) >= 1)
+    : uniquePosts;
 
   // Infinite scroll effect
   useEffect(() => {
@@ -349,8 +353,8 @@ export default function Home() {
                   </div>
                 ) : (
                   <>
-                    {filteredAndSortedPosts.map((post) => (
-                      <PostCard key={`main-${post.id}`} post={post} />
+                    {filteredAndSortedPosts.map((post, index) => (
+                      <PostCard key={`main-${post.id}-${index}`} post={post} />
                     ))}
                     
                     {/* Infinite scroll loading indicator */}

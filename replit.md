@@ -154,6 +154,7 @@ Changelog:
 - July 07, 2025. Fixed React key duplication warnings: added unique prefixes to distinguish posts in sidebar, profile sections, and comments
 - July 07, 2025. Fixed sidebar scrolling issue: Recent Posts section now scrolls independently with custom scrollbar styling
 - July 07, 2025. Improved sidebar height: Recent Posts now uses adaptive height (max 70% viewport) for better UX with many posts
+- July 07, 2025. Fixed React key duplication warnings completely: removed duplicate posts from infinite scroll and added unique index-based keys
 ```
 
 ## User Preferences
