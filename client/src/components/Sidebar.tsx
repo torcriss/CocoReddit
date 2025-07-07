@@ -156,9 +156,8 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     }, 300); // Small delay to simulate loading
   }, [isLoadingMore, hasMorePosts]);
 
-  // Scroll event handler with event isolation
+  // Scroll event handler with complete event isolation
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
-    // Prevent scroll event from propagating to parent elements
     e.stopPropagation();
     
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
@@ -168,6 +167,29 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
       loadMorePosts();
     }
   }, [loadMorePosts]);
+
+  // Wheel event handler to prevent scroll propagation at boundaries
+  const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const { deltaY } = e;
+    
+    // Check if we're at the top and trying to scroll up
+    if (scrollTop === 0 && deltaY < 0) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    
+    // Check if we're at the bottom and trying to scroll down
+    if (scrollTop + clientHeight >= scrollHeight && deltaY > 0) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    
+    // Allow normal scrolling within bounds
+    e.stopPropagation();
+  }, []);
 
   const clearRecentPosts = () => {
     // Only clear visited posts, not user's own posts
@@ -223,7 +245,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
             <div 
               ref={scrollContainerRef}
               onScroll={handleScroll}
-              onWheel={(e) => e.stopPropagation()} // Prevent wheel event propagation
+              onWheel={handleWheel}
               className="space-y-3 overflow-y-auto max-h-[70vh] pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
             >
               {recentPosts.length === 0 ? (
