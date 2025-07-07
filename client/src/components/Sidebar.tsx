@@ -168,27 +168,23 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     }
   }, [loadMorePosts]);
 
-  // Wheel event handler to prevent scroll propagation at boundaries
+  // Simple and effective wheel event handler
   const handleWheel = useCallback((e: React.WheelEvent<HTMLDivElement>) => {
-    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const container = e.currentTarget;
+    const { scrollTop, scrollHeight, clientHeight } = container;
     const { deltaY } = e;
     
-    // Check if we're at the top and trying to scroll up
-    if (scrollTop === 0 && deltaY < 0) {
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
+    // Calculate if we're at boundaries with small tolerance
+    const atTop = scrollTop <= 2;
+    const atBottom = scrollTop + clientHeight >= scrollHeight - 2;
     
-    // Check if we're at the bottom and trying to scroll down
-    if (scrollTop + clientHeight >= scrollHeight && deltaY > 0) {
-      e.preventDefault();
-      e.stopPropagation();
-      return;
-    }
-    
-    // Allow normal scrolling within bounds
+    // Stop propagation for all wheel events within this container
     e.stopPropagation();
+    
+    // Only prevent default (and thus scrolling) when at boundaries
+    if ((atTop && deltaY < 0) || (atBottom && deltaY > 0)) {
+      e.preventDefault();
+    }
   }, []);
 
   const clearRecentPosts = () => {
@@ -247,6 +243,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
               onScroll={handleScroll}
               onWheel={handleWheel}
               className="space-y-3 overflow-y-auto max-h-[70vh] pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
+              style={{ overscrollBehavior: 'contain' }}
             >
               {recentPosts.length === 0 ? (
                 <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">

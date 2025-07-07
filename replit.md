@@ -158,6 +158,7 @@ Changelog:
 - July 07, 2025. Added infinite scroll to Recent Posts sidebar: loads 10 posts initially, then 10 more when scrolling near bottom with loading indicator
 - July 07, 2025. Fixed scroll event propagation bug: sidebar scrolling now isolated from main content area to prevent unwanted page scrolling
 - July 07, 2025. Enhanced scroll isolation with boundary detection: prevents scroll propagation when reaching top/bottom of Recent Posts sidebar
+- July 07, 2025. Improved scroll isolation implementation: simplified wheel event handling with overscroll-behavior CSS for better boundary control
 ```
 
 ## User Preferences
