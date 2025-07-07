@@ -116,12 +116,9 @@ export default function PostCard({ post }: PostCardProps) {
   const voteMutation = useMutation({
     mutationFn: async (voteType: number) => {
       const newVoteType = userVote === voteType ? 0 : voteType;
-      return await apiRequest(`/api/votes`, {
-        method: "POST",
-        body: JSON.stringify({
-          postId: post.id,
-          voteType: newVoteType,
-        }),
+      return await apiRequest("POST", `/api/votes`, {
+        postId: post.id,
+        voteType: newVoteType,
       });
     },
     onMutate: async (voteType: number) => {
@@ -178,14 +175,9 @@ export default function PostCard({ post }: PostCardProps) {
     mutationFn: async () => {
       const currentSaved = optimisticSaved !== null ? optimisticSaved : !!isSaved;
       if (currentSaved) {
-        return await apiRequest(`/api/saved-posts/${post.id}`, {
-          method: "DELETE",
-        });
+        return await apiRequest("DELETE", `/api/saved-posts/${post.id}`);
       } else {
-        return await apiRequest(`/api/saved-posts`, {
-          method: "POST",
-          body: JSON.stringify({ postId: post.id }),
-        });
+        return await apiRequest("POST", `/api/saved-posts`, { postId: post.id });
       }
     },
     onMutate: async () => {
