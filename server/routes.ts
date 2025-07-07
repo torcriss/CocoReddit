@@ -284,6 +284,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/saved-posts/:postId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const postId = parseInt(req.params.postId);
+      
+      const deleted = await storage.unsavePost(userId, postId);
+      if (!deleted) {
+        return res.status(404).json({ error: "Saved post not found" });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error unsaving post:", error);
+      res.status(500).json({ error: "Failed to unsave post" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

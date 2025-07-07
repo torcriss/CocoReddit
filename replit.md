@@ -164,6 +164,7 @@ Changelog:
 - July 07, 2025. Redesigned sidebar with Reddit-style layout: added RECENT POSTS header, community avatars, improved card layout with hover effects, and better visual hierarchy
 - July 07, 2025. Moved sidebar to right side and updated all page layouts to accommodate right-side positioning
 - July 07, 2025. Redesigned PostCard component with Reddit-style layout: community avatars, compact design, horizontal action bar with voting/comments/share/save
+- July 07, 2025. Fixed API error: added missing DELETE route for saved posts (/api/saved-posts/:postId) to handle unsaving posts correctly
 ```
 
 ## User Preferences

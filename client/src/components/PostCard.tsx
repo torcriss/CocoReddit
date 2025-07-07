@@ -71,7 +71,9 @@ export default function PostCard({ post }: PostCardProps) {
     queryFn: async () => {
       if (!isAuthenticated || !user) return false;
       try {
-        const response = await fetch(`/api/saved-posts/${post.id}`);
+        const response = await fetch(`/api/saved-posts/${post.id}`, {
+          method: "GET",
+        });
         if (response.ok) {
           const savedPost = await response.json();
           return !!savedPost;
