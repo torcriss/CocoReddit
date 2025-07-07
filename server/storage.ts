@@ -19,7 +19,7 @@ import {
   type InsertSavedPost
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, like, desc, and, sql } from "drizzle-orm";
+import { eq, like, ilike, desc, and, or, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User operations
@@ -168,7 +168,10 @@ export class DatabaseStorage implements IStorage {
       .select()
       .from(posts)
       .where(
-        like(posts.title, `%${query}%`)
+        or(
+          ilike(posts.title, `%${query}%`),
+          ilike(posts.content, `%${query}%`)
+        )
       )
       .orderBy(desc(posts.votes));
   }
