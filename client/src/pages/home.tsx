@@ -6,7 +6,7 @@ import PostCard from "@/components/PostCard";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { TrendingUp, User, MessageCircle } from "lucide-react";
+import { TrendingUp, User, MessageCircle, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import type { Post, Comment } from "@shared/schema";
@@ -130,6 +130,17 @@ export default function Home() {
     setShowUserPosts(false);
     setShowUserComments(false);
     setSelectedSubreddit(null);
+    setSearchQuery(""); // Clear search when switching views
+  };
+
+  const handleSubredditSelect = (subredditId: number | null) => {
+    setSelectedSubreddit(subredditId);
+    setSearchQuery(""); // Clear search when selecting subreddit
+  };
+
+  const handleSortChange = (sort: string) => {
+    setSortBy(sort);
+    setSearchQuery(""); // Clear search when changing sort
   };
 
 
@@ -141,7 +152,8 @@ export default function Home() {
         viewMode={viewMode}
         onViewModeChange={handleViewModeChange}
         sortBy={sortBy}
-        onSortByChange={setSortBy}
+        onSortByChange={handleSortChange}
+        searchQuery={searchQuery}
       />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -149,7 +161,7 @@ export default function Home() {
           {/* Main Content */}
           <main className="flex-1 min-w-0">
             {/* Context Headers - Only show when specific conditions are met */}
-            {(viewMode === "popular" || selectedSubreddit || showUserPosts || showUserComments) && (
+            {(viewMode === "popular" || selectedSubreddit || showUserPosts || showUserComments || searchQuery) && (
               <div className="bg-white dark:bg-reddit-darker rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-6">
                 {viewMode === "popular" && (
                   <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
@@ -188,6 +200,34 @@ export default function Home() {
                         className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-gray-300 hover:border-gray-400"
                       >
                         View All Posts
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {searchQuery && (
+                  <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-10 h-10 bg-reddit-blue rounded-full flex items-center justify-center">
+                          <Search className="h-5 w-5 text-white" />
+                        </div>
+                        <div>
+                          <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                            Search Results
+                          </h2>
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Results for "{searchQuery}"
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSearchQuery("")}
+                        className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 border-gray-300 hover:border-gray-400"
+                      >
+                        Clear Search
                       </Button>
                     </div>
                   </div>
@@ -329,7 +369,7 @@ export default function Home() {
           {/* Sidebar */}
           <Sidebar 
             selectedSubreddit={selectedSubreddit}
-            onSubredditSelect={setSelectedSubreddit}
+            onSubredditSelect={handleSubredditSelect}
           />
         </div>
       </div>

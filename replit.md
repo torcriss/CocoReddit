@@ -138,6 +138,7 @@ Changelog:
 - July 06, 2025. Restored sample data: 6 posts, 5 comments, and 4 votes to repopulate the platform
 - July 06, 2025. Fixed Recent Comments regression: automatic refresh when new comments added and restored comment focusing functionality
 - July 06, 2025. Added comment counts to Recent Comments section on Profile page to match Recent Posts and Saved Posts formatting
+- July 06, 2025. Fixed search functionality: proper search clearing when switching views/filters and added search results indicator with clear button
 ```
 
 ## User Preferences

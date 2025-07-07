@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Search, Plus, Moon, Sun, Home, Bookmark, LogIn, LogOut, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,18 +15,24 @@ interface HeaderProps {
   onViewModeChange?: (mode: "home" | "popular") => void;
   sortBy?: string;
   onSortByChange?: (sort: string) => void;
+  searchQuery?: string;
 }
 
-export default function Header({ onSearch, viewMode = "home", onViewModeChange, sortBy = "hot", onSortByChange }: HeaderProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+export default function Header({ onSearch, viewMode = "home", onViewModeChange, sortBy = "hot", onSortByChange, searchQuery = "" }: HeaderProps) {
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
   const { user, isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
+  // Sync local search with external search query
+  useEffect(() => {
+    setLocalSearchQuery(searchQuery);
+  }, [searchQuery]);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    onSearch(searchQuery);
+    onSearch(localSearchQuery);
   };
 
   const getSortLabel = (sort: string) => {
@@ -119,8 +125,8 @@ export default function Header({ onSearch, viewMode = "home", onViewModeChange, 
                 <Input
                   type="text"
                   placeholder="Search Reddit"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  value={localSearchQuery}
+                  onChange={(e) => setLocalSearchQuery(e.target.value)}
                   className="w-full pl-10 bg-gray-100 dark:bg-reddit-dark border-gray-300 dark:border-gray-600 rounded-full focus:ring-2 focus:ring-reddit-blue focus:border-transparent"
                 />
                 <div className="absolute left-3 top-2.5">
