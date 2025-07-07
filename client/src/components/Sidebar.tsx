@@ -156,8 +156,11 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     }, 300); // Small delay to simulate loading
   }, [isLoadingMore, hasMorePosts]);
 
-  // Scroll event handler
+  // Scroll event handler with event isolation
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    // Prevent scroll event from propagating to parent elements
+    e.stopPropagation();
+    
     const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
     const threshold = 50; // Load more when 50px from bottom
     
@@ -220,6 +223,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
             <div 
               ref={scrollContainerRef}
               onScroll={handleScroll}
+              onWheel={(e) => e.stopPropagation()} // Prevent wheel event propagation
               className="space-y-3 overflow-y-auto max-h-[70vh] pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
             >
               {recentPosts.length === 0 ? (
