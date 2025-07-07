@@ -242,8 +242,12 @@ export default function PostDetail() {
   };
 
   const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    setLocation("/"); // Navigate back to home with search
+    if (query.trim()) {
+      // Store search query in URL params when navigating to home
+      setLocation(`/?search=${encodeURIComponent(query.trim())}`);
+    } else {
+      setLocation("/");
+    }
   };
 
   const handleViewModeChange = (mode: "home" | "popular") => {

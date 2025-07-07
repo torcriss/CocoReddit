@@ -145,6 +145,8 @@ Changelog:
 - July 07, 2025. Rebranded platform from "Reddit" to "Coco" with new gradient logo design and updated content
 - July 07, 2025. Loaded comprehensive test dataset: 3,011 posts, 1,010 comments, and 1,000 votes for performance testing
 - July 07, 2025. Removed karma/scoring system from user profiles for cleaner interface
+- July 07, 2025. Fixed comment count bug: updated all 3,011 posts to display correct comment counts throughout platform
+- July 07, 2025. Fixed search functionality on post detail pages: search now properly navigates to homepage with search results
 ```
 
 ## User Preferences

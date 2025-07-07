@@ -17,6 +17,18 @@ export default function Home() {
   const [viewMode, setViewMode] = useState<"home" | "popular">("home");
   const [selectedSubreddit, setSelectedSubreddit] = useState<number | null>(null);
 
+  // Check URL params for search query on load
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const searchParam = urlParams.get('search');
+    if (searchParam) {
+      setSearchQuery(searchParam);
+      // Clean up URL after extracting search query
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+    }
+  }, []);
+
   const [showUserPosts, setShowUserPosts] = useState(false);
   const [showUserComments, setShowUserComments] = useState(false);
   const { user } = useAuth();
