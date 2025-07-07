@@ -35,6 +35,8 @@ function CommentItem({ comment, onReply }: CommentItemProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts", comment.postId, "comments"] });
+      // Invalidate profile page comments query
+      queryClient.invalidateQueries({ queryKey: ["/api/comments/all"] });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -192,6 +194,8 @@ export default function CommentThread({ postId }: CommentThreadProps) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts", postId, "comments"] });
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
+      // Invalidate profile page comments query
+      queryClient.invalidateQueries({ queryKey: ["/api/comments/all"] });
       setNewComment("");
       setReplyContent("");
       setReplyingTo(null);

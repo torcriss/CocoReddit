@@ -24,7 +24,7 @@ export default function UserProfile() {
   });
 
   const { data: allComments = [] } = useQuery<Comment[]>({
-    queryKey: ["/api/comments/all"],
+    queryKey: ["/api/comments/all", posts.map(p => p.id).sort()],
     queryFn: async () => {
       // Fetch comments from all posts
       const commentPromises = posts.map(async (post) => {
@@ -36,6 +36,7 @@ export default function UserProfile() {
       return commentArrays.flat();
     },
     enabled: posts.length > 0,
+    refetchInterval: 10000, // Refetch every 10 seconds to catch new comments
   });
 
   const { data: savedPosts = [] } = useQuery<Post[]>({

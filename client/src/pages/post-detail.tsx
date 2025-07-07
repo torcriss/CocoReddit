@@ -45,7 +45,11 @@ export default function PostDetail() {
     const hash = window.location.hash;
     if (hash.startsWith('#comment-')) {
       const commentId = hash.replace('#comment-', '');
-      setTimeout(() => {
+      // Try multiple times in case comments are still loading
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      const tryFocus = () => {
         const element = document.getElementById(`comment-${commentId}`);
         if (element) {
           element.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -53,8 +57,14 @@ export default function PostDetail() {
           setTimeout(() => {
             element.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50');
           }, 3000);
+        } else if (attempts < maxAttempts) {
+          attempts++;
+          setTimeout(tryFocus, 200); // Try again after 200ms
         }
-      }, 500);
+      };
+      
+      // Initial delay to let page load
+      setTimeout(tryFocus, 500);
     }
   }, [id]);
 

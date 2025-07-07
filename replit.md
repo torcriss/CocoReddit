@@ -136,6 +136,7 @@ Changelog:
 - July 06, 2025. Changed Saved button styling from orange to red for better visual distinction
 - July 06, 2025. Performed database cleanup: removed all posts, comments, votes, and saved posts for fresh start
 - July 06, 2025. Restored sample data: 6 posts, 5 comments, and 4 votes to repopulate the platform
+- July 06, 2025. Fixed Recent Comments regression: automatic refresh when new comments added and restored comment focusing functionality
 ```
 
 ## User Preferences
