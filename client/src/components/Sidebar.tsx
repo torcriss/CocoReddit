@@ -190,7 +190,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="space-y-3 overflow-y-auto h-96 pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+            <div className="space-y-3 overflow-y-auto max-h-[70vh] pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
               {recentPosts.length === 0 ? (
                 <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
                   No visited posts yet
