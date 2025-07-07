@@ -173,10 +173,13 @@ export default function PostCard({ post }: PostCardProps) {
   // Save post mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
-      const currentSaved = optimisticSaved !== null ? optimisticSaved : !!isSaved;
+      // Use the actual current state, not the optimistic state
+      const currentSaved = !!isSaved;
       if (currentSaved) {
+        // Post is currently saved, so unsave it
         return await apiRequest("DELETE", `/api/saved-posts/${post.id}`);
       } else {
+        // Post is not saved, so save it
         return await apiRequest("POST", `/api/saved-posts`, { postId: post.id });
       }
     },
@@ -190,10 +193,12 @@ export default function PostCard({ post }: PostCardProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/saved-posts", post.id] });
       queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
       
-      const currentSaved = optimisticSaved !== null ? optimisticSaved : !!isSaved;
+      // Clear optimistic state and show appropriate message
+      const wasSaved = !!isSaved;
+      setOptimisticSaved(null);
       toast({
-        title: currentSaved ? "Post saved" : "Post unsaved",
-        description: currentSaved ? "Added to your saved posts" : "Removed from your saved posts",
+        title: wasSaved ? "Post unsaved" : "Post saved",
+        description: wasSaved ? "Removed from your saved posts" : "Added to your saved posts",
       });
     },
     onError: (error: Error, variables, context) => {
