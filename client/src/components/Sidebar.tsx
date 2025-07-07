@@ -215,13 +215,13 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   };
 
   return (
-    <aside className="w-80 hidden lg:block bg-gray-100 dark:bg-gray-900 border-r border-gray-200 dark:border-gray-700">
-      <div className="sticky top-20 space-y-4 p-4">
+    <aside className="w-80 hidden lg:block bg-black border-r border-gray-300 dark:border-gray-600 h-screen fixed left-0 top-0 z-10">
+      <div className="pt-20 space-y-4 p-4 h-full overflow-y-auto">
         {/* Recent Posts */}
-        <Card className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 shadow-sm">
+        <Card className="bg-gray-900 border border-gray-600 shadow-lg">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
+              <CardTitle className="text-base font-semibold text-white">
                 Recent Posts
               </CardTitle>
               {recentPosts.length > 0 && (
@@ -229,7 +229,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
                   variant="ghost"
                   size="sm"
                   onClick={clearRecentPosts}
-                  className="text-gray-500 dark:text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 p-1 h-8 w-8"
+                  className="text-gray-400 hover:text-red-400 hover:bg-red-900/20 p-1 h-8 w-8"
                   title="Clear recent posts"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -246,7 +246,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
               style={{ overscrollBehavior: 'contain' }}
             >
               {recentPosts.length === 0 ? (
-                <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
+                <div className="text-sm text-gray-400 text-center py-4">
                   No visited posts yet
                 </div>
               ) : (
@@ -254,17 +254,17 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
                   <div
                     key={`sidebar-recent-${post.id}`}
                     onClick={() => handlePostClick(post.id)}
-                    className="p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
+                    className="p-3 rounded-lg border border-gray-600 hover:bg-gray-800 cursor-pointer transition-colors"
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
-                        <div className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-1">
+                        <div className="text-xs text-blue-400 font-medium mb-1">
                           r/{getSubredditName(post.subredditId || undefined)}
                         </div>
-                        <div className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-2">
+                        <div className="text-sm font-medium text-white line-clamp-2 mb-2">
                           {post.title}
                         </div>
-                        <div className="flex items-center space-x-3 text-xs text-gray-500 dark:text-gray-400">
+                        <div className="flex items-center space-x-3 text-xs text-gray-400">
                           <div className="flex items-center space-x-1">
                             <ChevronUp className="h-3 w-3" />
                             <span>{Math.max(0, post.votes || 0)}</span>
@@ -286,7 +286,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
               {isLoadingMore && (
                 <div className="text-center py-3">
                   <Loader2 className="h-4 w-4 animate-spin mx-auto text-gray-400" />
-                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <div className="text-xs text-gray-400 mt-1">
                     Loading more posts...
                   </div>
                 </div>

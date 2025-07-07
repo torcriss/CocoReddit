@@ -160,7 +160,7 @@ export default function UserProfile() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark">
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8 ml-80 lg:ml-80">
         {/* Back Button */}
         <div className="mb-6">
           <Button

@@ -160,6 +160,7 @@ Changelog:
 - July 07, 2025. Enhanced scroll isolation with boundary detection: prevents scroll propagation when reaching top/bottom of Recent Posts sidebar
 - July 07, 2025. Improved scroll isolation implementation: simplified wheel event handling with overscroll-behavior CSS for better boundary control
 - July 07, 2025. Enhanced sidebar design: added darker background (gray-100/gray-900) with border and improved contrast for better visual separation from main content
+- July 07, 2025. Updated sidebar to full-height black design: fixed positioning, extends to top bar, black background with improved contrast for dramatic visual separation
 ```
 
 ## User Preferences

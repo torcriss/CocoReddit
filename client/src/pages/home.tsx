@@ -172,7 +172,7 @@ export default function Home() {
         searchQuery={searchQuery}
       />
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 ml-80 lg:ml-80">
         <div className="flex gap-6">
           {/* Main Content */}
           <main className="flex-1 min-w-0">
