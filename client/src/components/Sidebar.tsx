@@ -1,10 +1,10 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageCircle, ChevronUp, Trash2 } from "lucide-react";
+import { MessageCircle, ChevronUp, Trash2, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
 import { formatDistanceToNow } from "date-fns";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import type { Subreddit, Post } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -16,6 +16,9 @@ interface SidebarProps {
 export default function Sidebar({ selectedSubreddit, onSubredditSelect }: SidebarProps) {
   const [, setLocation] = useLocation();
   const [visitedPostIds, setVisitedPostIds] = useState<number[]>([]);
+  const [displayCount, setDisplayCount] = useState(10); // Start with 10 posts
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -124,7 +127,9 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     });
   
   // Combine: user's posts first, then visited posts
-  const recentPosts = [...userPosts, ...filteredVisitedPosts];
+  const allRecentPosts = [...userPosts, ...filteredVisitedPosts];
+  const recentPosts = allRecentPosts.slice(0, displayCount);
+  const hasMorePosts = allRecentPosts.length > displayCount;
   
 
 
@@ -140,10 +145,32 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     setLocation(`/post/${postId}`);
   };
 
+  // Infinite scroll functionality
+  const loadMorePosts = useCallback(() => {
+    if (isLoadingMore || !hasMorePosts) return;
+    
+    setIsLoadingMore(true);
+    setTimeout(() => {
+      setDisplayCount(prev => prev + 10);
+      setIsLoadingMore(false);
+    }, 300); // Small delay to simulate loading
+  }, [isLoadingMore, hasMorePosts]);
+
+  // Scroll event handler
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+    const threshold = 50; // Load more when 50px from bottom
+    
+    if (scrollHeight - scrollTop <= clientHeight + threshold) {
+      loadMorePosts();
+    }
+  }, [loadMorePosts]);
+
   const clearRecentPosts = () => {
     // Only clear visited posts, not user's own posts
     setVisitedPostIds([]);
     localStorage.removeItem('visitedPosts');
+    setDisplayCount(10); // Reset display count
   };
 
   const communityColors = [
@@ -190,7 +217,11 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
             </div>
           </CardHeader>
           <CardContent className="pt-0">
-            <div className="space-y-3 overflow-y-auto max-h-[70vh] pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+            <div 
+              ref={scrollContainerRef}
+              onScroll={handleScroll}
+              className="space-y-3 overflow-y-auto max-h-[70vh] pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
+            >
               {recentPosts.length === 0 ? (
                 <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
                   No visited posts yet
@@ -226,6 +257,25 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
                     </div>
                   </div>
                 ))
+              )}
+              
+              {/* Loading indicator for infinite scroll */}
+              {isLoadingMore && (
+                <div className="text-center py-3">
+                  <Loader2 className="h-4 w-4 animate-spin mx-auto text-gray-400" />
+                  <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                    Loading more posts...
+                  </div>
+                </div>
+              )}
+              
+              {/* Show if there are more posts available */}
+              {!isLoadingMore && hasMorePosts && recentPosts.length > 0 && (
+                <div className="text-center py-2">
+                  <div className="text-xs text-gray-400">
+                    Scroll down for more posts
+                  </div>
+                </div>
               )}
             </div>
           </CardContent>

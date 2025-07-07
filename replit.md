@@ -155,6 +155,7 @@ Changelog:
 - July 07, 2025. Fixed sidebar scrolling issue: Recent Posts section now scrolls independently with custom scrollbar styling
 - July 07, 2025. Improved sidebar height: Recent Posts now uses adaptive height (max 70% viewport) for better UX with many posts
 - July 07, 2025. Fixed React key duplication warnings completely: removed duplicate posts from infinite scroll and added unique index-based keys
+- July 07, 2025. Added infinite scroll to Recent Posts sidebar: loads 10 posts initially, then 10 more when scrolling near bottom with loading indicator
 ```
 
 ## User Preferences
