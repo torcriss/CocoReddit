@@ -290,7 +290,7 @@ export default function PostDetail() {
           viewMode={viewMode}
           onViewModeChange={handleViewModeChange}
         />
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 ml-80 lg:ml-80">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mr-80 lg:mr-80">
           <div className="text-center py-8">
             <div className="text-gray-500 dark:text-gray-400">Post not found</div>
             <Button 
@@ -314,7 +314,7 @@ export default function PostDetail() {
         onViewModeChange={handleViewModeChange}
       />
       
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 ml-80 lg:ml-80">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mr-80 lg:mr-80">
         {/* Back button */}
         <Button 
           onClick={() => cameFromProfile ? setLocation("/profile") : setLocation("/")}

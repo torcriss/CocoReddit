@@ -215,7 +215,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   };
 
   return (
-    <aside className="w-80 hidden lg:block bg-gray-900 border-r border-gray-700 h-screen fixed left-0 top-0 z-10">
+    <aside className="w-80 hidden lg:block bg-gray-900 border-l border-gray-700 h-screen fixed right-0 top-0 z-10">
       <div className="pt-20 h-full flex flex-col">
         {/* Recent Posts Header */}
         <div className="px-4 py-3 border-b border-gray-700">
