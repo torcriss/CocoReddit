@@ -215,94 +215,107 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   };
 
   return (
-    <aside className="w-80 hidden lg:block bg-black border-r border-gray-300 dark:border-gray-600 h-screen fixed left-0 top-0 z-10">
-      <div className="pt-20 space-y-4 p-4 h-full overflow-y-auto">
-        {/* Recent Posts */}
-        <Card className="bg-gray-900 border border-gray-600 shadow-lg">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold text-white">
-                Recent Posts
-              </CardTitle>
-              {recentPosts.length > 0 && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={clearRecentPosts}
-                  className="text-gray-400 hover:text-red-400 hover:bg-red-900/20 p-1 h-8 w-8"
-                  title="Clear recent posts"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
+    <aside className="w-80 hidden lg:block bg-gray-900 border-r border-gray-700 h-screen fixed left-0 top-0 z-10">
+      <div className="pt-20 h-full flex flex-col">
+        {/* Recent Posts Header */}
+        <div className="px-4 py-3 border-b border-gray-700">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
+              RECENT POSTS
+            </h2>
+            {recentPosts.length > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearRecentPosts}
+                className="text-gray-500 hover:text-red-400 hover:bg-red-900/20 p-1 h-6 w-6 text-xs"
+                title="Clear recent posts"
+              >
+                Clear
+              </Button>
+            )}
+          </div>
+        </div>
+        {/* Recent Posts Content */}
+        <div 
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+          onWheel={handleWheel}
+          className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
+          style={{ overscrollBehavior: 'contain' }}
+        >
+          {recentPosts.length === 0 ? (
+            <div className="text-sm text-gray-500 text-center py-8 px-4">
+              No visited posts yet
             </div>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div 
-              ref={scrollContainerRef}
-              onScroll={handleScroll}
-              onWheel={handleWheel}
-              className="space-y-3 overflow-y-auto max-h-[70vh] pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
-              style={{ overscrollBehavior: 'contain' }}
-            >
-              {recentPosts.length === 0 ? (
-                <div className="text-sm text-gray-400 text-center py-4">
-                  No visited posts yet
-                </div>
-              ) : (
-                recentPosts.map((post) => (
-                  <div
-                    key={`sidebar-recent-${post.id}`}
-                    onClick={() => handlePostClick(post.id)}
-                    className="p-3 rounded-lg border border-gray-600 hover:bg-gray-800 cursor-pointer transition-colors"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-xs text-blue-400 font-medium mb-1">
+          ) : (
+            <div className="space-y-0">
+              {recentPosts.map((post) => (
+                <div
+                  key={`sidebar-recent-${post.id}`}
+                  onClick={() => handlePostClick(post.id)}
+                  className="p-3 border-b border-gray-800 hover:bg-gray-800/50 cursor-pointer transition-colors group"
+                >
+                  <div className="flex items-start space-x-3">
+                    {/* User Avatar/Community Icon */}
+                    <div className="w-8 h-8 rounded-full bg-orange-500 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <span className="text-white text-xs font-bold">
+                        {getSubredditName(post.subredditId || undefined)?.charAt(0).toUpperCase() || 'C'}
+                      </span>
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      {/* Community and Time */}
+                      <div className="flex items-center space-x-2 text-xs text-gray-400 mb-1">
+                        <span className="font-medium">
                           r/{getSubredditName(post.subredditId || undefined)}
+                        </span>
+                        <span>•</span>
+                        <span>{formatTimeAgo(post.createdAt)}</span>
+                      </div>
+                      
+                      {/* Post Title */}
+                      <div className="text-sm text-white font-medium line-clamp-2 mb-2 group-hover:text-gray-100">
+                        {post.title}
+                      </div>
+                      
+                      {/* Engagement Stats */}
+                      <div className="flex items-center space-x-4 text-xs text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <ChevronUp className="h-3 w-3" />
+                          <span>{Math.max(0, post.votes || 0)} upvotes</span>
                         </div>
-                        <div className="text-sm font-medium text-white line-clamp-2 mb-2">
-                          {post.title}
-                        </div>
-                        <div className="flex items-center space-x-3 text-xs text-gray-400">
-                          <div className="flex items-center space-x-1">
-                            <ChevronUp className="h-3 w-3" />
-                            <span>{Math.max(0, post.votes || 0)}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
-                            <MessageCircle className="h-3 w-3" />
-                            <span>{post.commentCount || 0}</span>
-                          </div>
-                          <span>•</span>
-                          <span>{formatTimeAgo(post.createdAt)}</span>
+                        <div className="flex items-center space-x-1">
+                          <MessageCircle className="h-3 w-3" />
+                          <span>{post.commentCount || 0} comments</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                ))
-              )}
-              
-              {/* Loading indicator for infinite scroll */}
-              {isLoadingMore && (
-                <div className="text-center py-3">
-                  <Loader2 className="h-4 w-4 animate-spin mx-auto text-gray-400" />
-                  <div className="text-xs text-gray-400 mt-1">
-                    Loading more posts...
-                  </div>
                 </div>
-              )}
-              
-              {/* Show if there are more posts available */}
-              {!isLoadingMore && hasMorePosts && recentPosts.length > 0 && (
-                <div className="text-center py-2">
-                  <div className="text-xs text-gray-400">
-                    Scroll down for more posts
-                  </div>
-                </div>
-              )}
+              ))}
             </div>
-          </CardContent>
-        </Card>
+          )}
+          
+          {/* Loading indicator for infinite scroll */}
+          {isLoadingMore && (
+            <div className="text-center py-4 px-4">
+              <Loader2 className="h-4 w-4 animate-spin mx-auto text-gray-400" />
+              <div className="text-xs text-gray-500 mt-2">
+                Loading more posts...
+              </div>
+            </div>
+          )}
+          
+          {/* Show if there are more posts available */}
+          {!isLoadingMore && hasMorePosts && recentPosts.length > 0 && (
+            <div className="text-center py-3 px-4">
+              <div className="text-xs text-gray-500">
+                Scroll down for more posts
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </aside>
   );
