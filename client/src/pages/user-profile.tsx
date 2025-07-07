@@ -335,9 +335,15 @@ export default function UserProfile() {
                           {comment.content}
                         </p>
                         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                          <div className="flex items-center space-x-1">
-                            <ChevronUp className="h-4 w-4" />
-                            <span>{comment.votes || 0}</span>
+                          <div className="flex items-center space-x-4">
+                            <div className="flex items-center space-x-1">
+                              <ChevronUp className="h-4 w-4" />
+                              <span>{comment.votes || 0}</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <MessageCircle className="h-4 w-4" />
+                              <span>{commentPost?.commentCount || 0}</span>
+                            </div>
                           </div>
                           <span>{formatTimeAgo(comment.createdAt)}</span>
                         </div>
