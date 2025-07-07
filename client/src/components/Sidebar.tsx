@@ -168,10 +168,10 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
 
   return (
     <aside className="w-80 hidden lg:block">
-      <div className="sticky top-20 space-y-4 max-h-[calc(100vh-6rem)] overflow-hidden flex flex-col">
+      <div className="sticky top-20 space-y-4">
         {/* Recent Posts */}
-        <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700 flex-1 flex flex-col min-h-0">
-          <CardHeader className="pb-3 flex-shrink-0">
+        <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
+          <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-base font-semibold text-gray-900 dark:text-white">
                 Recent Posts
@@ -189,8 +189,8 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
               )}
             </div>
           </CardHeader>
-          <CardContent className="pt-0 flex-1 overflow-hidden">
-            <div className="space-y-3 overflow-y-auto max-h-full pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+          <CardContent className="pt-0">
+            <div className="space-y-3 overflow-y-auto h-96 pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
               {recentPosts.length === 0 ? (
                 <div className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
                   No visited posts yet

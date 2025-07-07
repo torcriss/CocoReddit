@@ -350,7 +350,7 @@ export default function Home() {
                 ) : (
                   <>
                     {filteredAndSortedPosts.map((post) => (
-                      <PostCard key={post.id} post={post} />
+                      <PostCard key={`main-${post.id}`} post={post} />
                     ))}
                     
                     {/* Infinite scroll loading indicator */}
