@@ -112,6 +112,13 @@ export default function PostCard({ post }: PostCardProps) {
     }
   }, [currentVote]);
 
+  // Clear optimistic saved state when actual data loads
+  useEffect(() => {
+    if (isSaved !== undefined) {
+      setOptimisticSaved(null);
+    }
+  }, [isSaved]);
+
   // Voting mutation
   const voteMutation = useMutation({
     mutationFn: async (voteType: number) => {
@@ -189,17 +196,16 @@ export default function PostCard({ post }: PostCardProps) {
       return { previousSaved };
     },
     onSuccess: () => {
-      // Invalidate all related saved posts queries
-      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts", post.id] });
-      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
-      
-      // Clear optimistic state and show appropriate message
+      // Show appropriate message based on the action taken
       const wasSaved = !!isSaved;
-      setOptimisticSaved(null);
       toast({
         title: wasSaved ? "Post unsaved" : "Post saved",
         description: wasSaved ? "Removed from your saved posts" : "Added to your saved posts",
       });
+      
+      // Invalidate queries to refresh the data
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts", post.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
     },
     onError: (error: Error, variables, context) => {
       // Revert optimistic update
