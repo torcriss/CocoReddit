@@ -172,6 +172,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check if user has commented on a post
+  app.get("/api/comments/user-commented/:postId", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.claims.sub;
+      const postId = parseInt(req.params.postId);
+      
+      const hasCommented = await storage.hasUserCommentedOnPost(userId, postId);
+      res.json({ hasCommented });
+    } catch (error) {
+      res.status(500).json({ error: "Failed to check user comment status" });
+    }
+  });
+
   // Votes
   app.get("/api/votes/user/:postId", isAuthenticated, async (req: any, res) => {
     try {

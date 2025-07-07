@@ -84,6 +84,25 @@ export default function PostCard({ post }: PostCardProps) {
     enabled: isAuthenticated && !!user,
   });
 
+  // Check if user has commented on this post
+  const { data: hasCommented = false } = useQuery({
+    queryKey: ["/api/comments/user-commented", post.id],
+    queryFn: async () => {
+      if (!isAuthenticated || !user) return false;
+      try {
+        const response = await fetch(`/api/comments/user-commented/${post.id}`);
+        if (response.ok) {
+          const result = await response.json();
+          return result.hasCommented;
+        }
+      } catch (error) {
+        // Ignore error, just return false
+      }
+      return false;
+    },
+    enabled: isAuthenticated && !!user,
+  });
+
   // Update local state when vote data is fetched
   useEffect(() => {
     if (currentVote !== undefined) {
@@ -395,7 +414,11 @@ export default function PostCard({ post }: PostCardProps) {
               
               setLocation(`/post/${post.id}`);
             }}
-            className="flex items-center space-x-1 hover:bg-gray-100 dark:hover:bg-reddit-dark text-gray-500 dark:text-gray-400"
+            className={`flex items-center space-x-1 hover:bg-gray-100 dark:hover:bg-reddit-dark ${
+              hasCommented 
+                ? "text-green-600 dark:text-green-400" 
+                : "text-gray-500 dark:text-gray-400"
+            }`}
           >
             <MessageSquare className="h-4 w-4" />
             <span>{post.commentCount || 0}</span>

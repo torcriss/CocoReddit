@@ -46,6 +46,7 @@ export interface IStorage {
   createComment(comment: InsertComment): Promise<Comment>;
   updateComment(id: number, updates: Partial<Comment>): Promise<Comment | undefined>;
   deleteComment(id: number): Promise<boolean>;
+  hasUserCommentedOnPost(userId: string, postId: number): Promise<boolean>;
 
   // Votes
   getVote(userId: string, postId?: number, commentId?: number): Promise<Vote | undefined>;
@@ -256,6 +257,27 @@ export class DatabaseStorage implements IStorage {
     }
 
     return (result.rowCount || 0) > 0;
+  }
+
+  async hasUserCommentedOnPost(userId: string, postId: number): Promise<boolean> {
+    // Get the user to find their display name
+    const user = await this.getUser(userId);
+    if (!user) return false;
+    
+    const userIdentifier = user.firstName || user.email || "anonymous";
+    
+    const [comment] = await db
+      .select({ id: comments.id })
+      .from(comments)
+      .where(
+        and(
+          eq(comments.postId, postId),
+          eq(comments.authorUsername, userIdentifier)
+        )
+      )
+      .limit(1);
+    
+    return !!comment;
   }
 
   // Votes

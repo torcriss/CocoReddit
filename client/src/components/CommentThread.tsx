@@ -196,6 +196,8 @@ export default function CommentThread({ postId }: CommentThreadProps) {
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
       // Invalidate profile page comments query
       queryClient.invalidateQueries({ queryKey: ["/api/comments/all"] });
+      // Invalidate user comment status for this post
+      queryClient.invalidateQueries({ queryKey: ["/api/comments/user-commented", postId] });
       setNewComment("");
       setReplyContent("");
       setReplyingTo(null);
