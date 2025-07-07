@@ -80,15 +80,27 @@ export default function UserProfile() {
            post.authorUsername === user.email;
   });
   
-  // Get recently visited posts (same logic as sidebar) - no limit for infinite scrolling
-  const recentPosts = posts
-    .filter(post => visitedPostIds.includes(post.id))
+  // Get user's own posts and visited posts (same logic as sidebar)
+  const userOwnPosts = posts
+    .filter(post => post.authorUsername === userIdentifier)
+    .sort((a, b) => {
+      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+      return dateB - dateA;
+    });
+  
+  // Visited posts (excluding user's own posts to avoid duplicates)
+  const visitedPosts = posts
+    .filter(post => visitedPostIds.includes(post.id) && post.authorUsername !== userIdentifier)
     .sort((a, b) => {
       // Sort by when they were visited (most recent first)
       const aIndex = visitedPostIds.indexOf(a.id);
       const bIndex = visitedPostIds.indexOf(b.id);
       return aIndex - bIndex;
     });
+  
+  // Combine: user's posts first, then visited posts
+  const recentPosts = [...userOwnPosts, ...visitedPosts];
 
   const userComments = allComments.filter((comment: Comment) => {
     return comment.authorUsername === userIdentifier || 
