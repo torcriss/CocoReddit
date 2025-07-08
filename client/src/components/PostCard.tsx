@@ -119,6 +119,7 @@ export default function PostCard({ post }: PostCardProps) {
     onSuccess: () => {
       // Invalidate queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ["/api/saved-posts", post.id] });
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
       queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
     },
     onError: (error: Error, variables, context) => {
