@@ -172,6 +172,10 @@ Changelog:
 - July 08, 2025. Updated User Profile page to 2-column layout showing only Saved Posts and Recent Comments sections
 - July 08, 2025. Added Clear Saved Posts button to both sidebar and profile page with sync functionality
 - July 08, 2025. Made sidebar fixed to right side of screen for consistent positioning across all pages
+- July 08, 2025. Updated top navigation to show only "New" and "Old" sorting options, removing "Home" and "Hot"
+- July 08, 2025. Fixed dynamic sidebar updates by adding proper cache invalidation when posts are saved/unsaved
+- July 08, 2025. Removed orange highlight from Share button on both homepage and post detail pages
+- July 08, 2025. Fixed null post error in PostCard component by adding proper null checks
 ```
 
 ## User Preferences

@@ -25,6 +25,11 @@ interface PostCardProps {
 }
 
 export default function PostCard({ post }: PostCardProps) {
+  // Early return if post doesn't exist
+  if (!post) {
+    return null;
+  }
+
   const [optimisticSaved, setOptimisticSaved] = useState<boolean | null>(null);
 
   const [, setLocation] = useLocation();
@@ -147,6 +152,9 @@ export default function PostCard({ post }: PostCardProps) {
   });
 
   const handleSave = () => {
+    // Check if post exists to prevent errors
+    if (!post) return;
+    
     if (!isAuthenticated) {
       toast({
         title: "Login Required",
@@ -166,6 +174,9 @@ export default function PostCard({ post }: PostCardProps) {
   };
 
   const handleShare = () => {
+    // Check if post exists to prevent errors
+    if (!post) return;
+    
     const postUrl = `${window.location.origin}/post/${post.id}`;
     
     navigator.clipboard.writeText(postUrl).then(() => {
@@ -178,6 +189,9 @@ export default function PostCard({ post }: PostCardProps) {
   };
 
   const handlePostClick = () => {
+    // Check if post exists to prevent errors
+    if (!post) return;
+    
     // Save visited post to localStorage
     const visitedPosts = JSON.parse(localStorage.getItem("visitedPosts") || "[]");
     const existingIndex = visitedPosts.findIndex((p: any) => p.id === post.id);
