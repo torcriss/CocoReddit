@@ -63,15 +63,26 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
       const stored = localStorage.getItem('visitedPosts');
       if (stored) {
         try {
-          const parsedIds = JSON.parse(stored);
-          // Validate that all items are numbers
-          const validIds = parsedIds.filter((id: any) => typeof id === 'number' && !isNaN(id));
-          setVisitedPostIds(validIds);
+          const parsedData = JSON.parse(stored);
+          // Handle both old format (array of IDs) and new format (array of objects)
+          let validIds: number[] = [];
           
-          // If we had to filter out invalid IDs, update localStorage
-          if (validIds.length !== parsedIds.length) {
-            localStorage.setItem('visitedPosts', JSON.stringify(validIds));
+          if (Array.isArray(parsedData)) {
+            if (parsedData.length > 0) {
+              if (typeof parsedData[0] === 'number') {
+                // Old format: array of IDs
+                validIds = parsedData.filter((id: any) => typeof id === 'number' && !isNaN(id));
+              } else if (typeof parsedData[0] === 'object' && parsedData[0].id) {
+                // New format: array of objects with id property
+                validIds = parsedData
+                  .filter((item: any) => item && typeof item.id === 'number' && !isNaN(item.id))
+                  .map((item: any) => item.id);
+              }
+            }
           }
+          
+          setVisitedPostIds(validIds);
+          console.log('Loaded visited post IDs:', validIds);
         } catch {
           setVisitedPostIds([]);
           localStorage.removeItem('visitedPosts');
@@ -214,7 +225,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   const clearRecentPosts = () => {
     console.log('Clear button clicked. visitedPostIds:', visitedPostIds);
     
-    // Always clear visited posts first
+    // Always clear visited posts 
     setVisitedPostIds([]);
     localStorage.removeItem('visitedPosts');
     setDisplayCount(10); // Reset display count
@@ -226,7 +237,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     // Trigger custom event for other components
     window.dispatchEvent(new CustomEvent('visitedPostsChanged'));
     
-    console.log('Clear completed');
+    console.log('Clear completed. Should now show default posts.');
   };
 
   const communityColors = [
