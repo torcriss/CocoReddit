@@ -111,16 +111,16 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   const hasMorePosts = savedPosts.length > displayCount;
 
   return (
-    <div className="fixed right-0 top-14 w-80 bg-black text-white h-[calc(100vh-3.5rem)] flex flex-col border-l border-gray-800 z-10">
+    <div className="fixed right-0 top-14 w-80 bg-gray-100 dark:bg-black text-gray-900 dark:text-white h-[calc(100vh-3.5rem)] flex flex-col border-l border-gray-300 dark:border-gray-800 z-10">
       {/* Header */}
-      <div className="p-4 border-b border-gray-800">
+      <div className="p-4 border-b border-gray-300 dark:border-gray-800">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">SAVED POSTS</h2>
           {savedPosts.length > 0 && (
             <button
               onClick={handleClearSavedPosts}
               disabled={clearSavedPostsMutation.isPending}
-              className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
+              className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-400 hover:bg-gray-200 dark:hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
               title="Clear all saved posts"
             >
               <Trash2 className="h-4 w-4" />
@@ -135,15 +135,15 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
           ref={scrollContainerRef}
           onScroll={handleScroll}
           onWheel={handleWheel}
-          className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
+          className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent"
           style={{ overscrollBehavior: 'contain' }}
         >
           {!isAuthenticated ? (
-            <div className="text-sm text-gray-500 text-center py-8 px-4">
+            <div className="text-sm text-gray-600 dark:text-gray-500 text-center py-8 px-4">
               Log in to see your saved posts
             </div>
           ) : displayedSavedPosts.length === 0 ? (
-            <div className="text-sm text-gray-500 text-center py-8 px-4">
+            <div className="text-sm text-gray-600 dark:text-gray-500 text-center py-8 px-4">
               No saved posts yet
             </div>
           ) : (
@@ -155,7 +155,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
                   <div
                     key={`sidebar-saved-${post.id}`}
                     onClick={() => handlePostClick(post.id)}
-                    className="p-3 border-b border-gray-800 hover:bg-gray-900 cursor-pointer transition-colors"
+                    className="p-3 border-b border-gray-200 dark:border-gray-800 hover:bg-gray-200 dark:hover:bg-gray-900 cursor-pointer transition-colors"
                   >
                     <div className="flex items-start space-x-3">
                       {/* Community Avatar */}
@@ -165,8 +165,8 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
                       
                       <div className="flex-1 min-w-0">
                         {/* Community and metadata */}
-                        <div className="flex items-center space-x-2 text-xs text-gray-400 mb-1">
-                          <span className="text-blue-400 hover:text-blue-300">
+                        <div className="flex items-center space-x-2 text-xs text-gray-600 dark:text-gray-400 mb-1">
+                          <span className="text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300">
                             r/{subreddit?.name || 'community'}
                           </span>
                           <span>•</span>
@@ -174,12 +174,12 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
                         </div>
                         
                         {/* Post title */}
-                        <h3 className="text-sm font-medium text-white line-clamp-2 mb-1">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 mb-1">
                           {post.title}
                         </h3>
                         
                         {/* Post metadata */}
-                        <div className="flex items-center space-x-3 text-xs text-gray-400">
+                        <div className="flex items-center space-x-3 text-xs text-gray-600 dark:text-gray-400">
                           <span>{post.commentCount || 0} comments</span>
                         </div>
                       </div>
@@ -192,7 +192,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
               {hasMorePosts && (
                 <div className="p-4 text-center">
                   {isLoadingMore ? (
-                    <div className="text-sm text-gray-400">Loading more posts...</div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Loading more posts...</div>
                   ) : (
                     <button
                       onClick={loadMorePosts}

@@ -176,6 +176,7 @@ Changelog:
 - July 08, 2025. Fixed dynamic sidebar updates by adding proper cache invalidation when posts are saved/unsaved
 - July 08, 2025. Removed orange highlight from Share button on both homepage and post detail pages
 - July 08, 2025. Fixed null post error in PostCard component by adding proper null checks
+- July 08, 2025. Fixed sidebar styling for light mode: changed from black to light grey background with proper text colors
 ```
 
 ## User Preferences
