@@ -236,8 +236,6 @@ export default function PostDetail() {
       <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark">
         <Header 
           onSearch={handleSearch}
-          sortBy="home"
-          onSortByChange={() => {}}
         />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mr-80 lg:mr-80">
           <div className="text-center py-8">
@@ -259,8 +257,6 @@ export default function PostDetail() {
     <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark">
       <Header 
         onSearch={handleSearch}
-        sortBy="home"
-        onSortByChange={() => {}}
       />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mr-80 lg:mr-80">

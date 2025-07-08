@@ -7,16 +7,16 @@ import { useTheme } from "./ThemeProvider";
 import CreatePostDialog from "./CreatePostDialog";
 import { useAuth } from "@/hooks/useAuth";
 import { useLocation } from "wouter";
+import { useSharedState } from "@/hooks/useSharedState";
 import type { User } from "@shared/schema";
 
 interface HeaderProps {
   onSearch: (query: string) => void;
-  sortBy?: string;
-  onSortByChange?: (sort: string) => void;
   searchQuery?: string;
 }
 
-export default function Header({ onSearch, sortBy = "home", onSortByChange, searchQuery = "" }: HeaderProps) {
+export default function Header({ onSearch, searchQuery = "" }: HeaderProps) {
+  const { sortBy, updateSortBy } = useSharedState();
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -61,28 +61,26 @@ export default function Header({ onSearch, sortBy = "home", onSortByChange, sear
               {/* Navigation */}
               <nav className="hidden md:flex items-center space-x-1">
                 {/* Sort Dropdown */}
-                {onSortByChange && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-reddit-blue"
-                      >
-                        <span>{getSortLabel(sortBy)}</span>
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="start">
-                      <DropdownMenuItem onClick={() => onSortByChange("new")}>
-                        🆕 New
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onSortByChange("old")}>
-                        📅 Old
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="flex items-center space-x-1 text-gray-700 dark:text-gray-300 hover:text-reddit-blue"
+                    >
+                      <span>{getSortLabel(sortBy)}</span>
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="start">
+                    <DropdownMenuItem onClick={() => updateSortBy("new")}>
+                      🆕 New
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => updateSortBy("old")}>
+                      📅 Old
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </nav>
             </div>
 

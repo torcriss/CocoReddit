@@ -9,10 +9,11 @@ import { Card } from "@/components/ui/card";
 import { TrendingUp, User, MessageCircle, Search } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
+import { useSharedState } from "@/hooks/useSharedState";
 import type { Post, Comment } from "@shared/schema";
 
 export default function Home() {
-  const [sortBy, setSortBy] = useState("new");
+  const { sortBy, updateSortBy } = useSharedState();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubreddit, setSelectedSubreddit] = useState<number | null>(null);
 
@@ -144,19 +145,10 @@ export default function Home() {
     setSearchQuery(""); // Clear search when selecting subreddit
   };
 
-  const handleSortChange = (sort: string) => {
-    setSortBy(sort);
-    setSearchQuery(""); // Clear search when changing sort
-  };
-
-
-
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark">
       <Header 
         onSearch={setSearchQuery} 
-        sortBy={sortBy}
-        onSortByChange={handleSortChange}
         searchQuery={searchQuery}
       />
       
