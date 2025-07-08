@@ -161,8 +161,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userIdentifiers = [
         userId, // user ID
         req.user.claims.email, // user email
-        req.user.claims.firstName, // user first name
-        req.user.claims.firstName || req.user.claims.email, // fallback logic used in comment creation
+        req.user.claims.first_name, // user first name (correct field name)
+        req.user.claims.first_name || req.user.claims.email, // fallback logic used in comment creation
         req.user.claims.email?.split('@')[0] // email username part
       ].filter(Boolean); // remove any undefined/null values
       
@@ -195,8 +195,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userIdentifiers = [
         userId, // user ID
         req.user.claims.email, // user email
-        req.user.claims.firstName, // user first name
-        req.user.claims.firstName || req.user.claims.email, // fallback logic used in comment creation
+        req.user.claims.first_name, // user first name (correct field name)
+        req.user.claims.first_name || req.user.claims.email, // fallback logic used in comment creation
         req.user.claims.email?.split('@')[0] // email username part
       ].filter(Boolean); // remove any undefined/null values
       
