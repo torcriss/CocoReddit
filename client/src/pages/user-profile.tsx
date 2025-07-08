@@ -134,8 +134,11 @@ export default function UserProfile() {
       return aIndex - bIndex;
     });
   
-  // Combine: user's posts first, then visited posts
-  const recentPosts = [...userOwnPosts, ...visitedPosts];
+  // If no visited posts yet, show the latest posts from the platform
+  const defaultRecentPosts = visitedPostIds.length === 0 ? posts.slice(0, 20) : [];
+  
+  // Combine: user's posts first, then visited posts, then default posts if needed
+  const recentPosts = [...userOwnPosts, ...visitedPosts, ...defaultRecentPosts];
 
   const userComments = allComments.filter((comment: Comment) => {
     return comment.authorUsername === userIdentifier || 

@@ -135,8 +135,11 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
       return aIndex - bIndex;
     });
   
-  // Combine: user's posts first, then visited posts
-  const allRecentPosts = [...userPosts, ...filteredVisitedPosts];
+  // If no visited posts yet, show the latest posts from the platform
+  const defaultRecentPosts = visitedPostIds.length === 0 ? posts.slice(0, 10) : [];
+  
+  // Combine: user's posts first, then visited posts, then default posts if needed
+  const allRecentPosts = [...userPosts, ...filteredVisitedPosts, ...defaultRecentPosts];
   const recentPosts = allRecentPosts.slice(0, displayCount);
   const hasMorePosts = allRecentPosts.length > displayCount;
   
@@ -264,7 +267,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
         >
           {recentPosts.length === 0 ? (
             <div className="text-sm text-gray-500 text-center py-8 px-4">
-              No visited posts yet
+              No posts available
             </div>
           ) : (
             <div className="space-y-0">
