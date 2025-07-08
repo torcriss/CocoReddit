@@ -19,6 +19,7 @@ export default function UserProfile() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // All queries must be at the top level to avoid hooks order issues
   const { data: posts = [] } = useQuery<Post[]>({
     queryKey: ["/api/posts"],
     queryFn: async () => {
@@ -27,8 +28,6 @@ export default function UserProfile() {
       return response.json();
     },
   });
-
-
 
   const { data: allComments = [] } = useQuery<Comment[]>({
     queryKey: ["/api/comments/all", posts.map(p => p.id).sort()],
@@ -55,8 +54,7 @@ export default function UserProfile() {
     queryKey: ["/api/subreddits"],
   });
 
-
-
+  // Early return after all hooks are called
   if (!isAuthenticated || !user) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark flex items-center justify-center">

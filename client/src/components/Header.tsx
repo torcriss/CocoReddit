@@ -50,7 +50,7 @@ export default function Header({ onSearch, sortBy = "home", onSortByChange, sear
             <div className="flex items-center space-x-4">
               <div 
                 className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => onSortByChange?.("new")}
+                onClick={() => setLocation("/")}
               >
                 <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-sm">C</span>
