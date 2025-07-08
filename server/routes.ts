@@ -158,9 +158,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user owns the comment
-      if (existingComment.authorUsername !== userId && 
-          existingComment.authorUsername !== req.user.claims.email &&
-          existingComment.authorUsername !== req.user.claims.firstName) {
+      const userIdentifiers = [
+        userId, // user ID
+        req.user.claims.email, // user email
+        req.user.claims.firstName, // user first name
+        req.user.claims.firstName || req.user.claims.email // fallback logic used in comment creation
+      ].filter(Boolean); // remove any undefined/null values
+      
+      if (!userIdentifiers.includes(existingComment.authorUsername)) {
         return res.status(403).json({ error: "Not authorized to edit this comment" });
       }
       
@@ -186,9 +191,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Check if user owns the comment
-      if (existingComment.authorUsername !== userId && 
-          existingComment.authorUsername !== req.user.claims.email &&
-          existingComment.authorUsername !== req.user.claims.firstName) {
+      const userIdentifiers = [
+        userId, // user ID
+        req.user.claims.email, // user email
+        req.user.claims.firstName, // user first name
+        req.user.claims.firstName || req.user.claims.email // fallback logic used in comment creation
+      ].filter(Boolean); // remove any undefined/null values
+      
+      console.log("Comment authorUsername:", existingComment.authorUsername);
+      console.log("User identifiers:", userIdentifiers);
+      
+      if (!userIdentifiers.includes(existingComment.authorUsername)) {
         return res.status(403).json({ error: "Not authorized to delete this comment" });
       }
       

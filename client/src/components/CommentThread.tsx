@@ -43,12 +43,12 @@ function CommentItem({ comment, onReply, postId }: CommentItemProps) {
   ];
   const avatarColor = avatarColors[comment.id % avatarColors.length];
 
-  // Check if current user owns this comment
+  // Check if current user owns this comment - match the logic used in comment creation
   const isOwner = user && (
     comment.authorUsername === user.id ||
     comment.authorUsername === user.email ||
     comment.authorUsername === user.firstName ||
-    comment.authorUsername === (user.firstName || user.email)
+    comment.authorUsername === (user.firstName || user.email) // This matches the comment creation logic
   );
 
   // Check if comment is deleted
