@@ -174,50 +174,81 @@ export default function PostCard({ post }: PostCardProps) {
   };
 
   const handleShare = () => {
-    // Check if post exists to prevent errors
-    if (!post) return;
-    
-    const postUrl = `${window.location.origin}/post/${post.id}`;
-    
-    navigator.clipboard.writeText(postUrl).then(() => {
-      setSharedPost(post.id);
-      toast({
-        title: "Link copied!",
-        description: "Post link has been copied to clipboard",
+    try {
+      // Check if post exists to prevent errors
+      if (!post || !post.id) return;
+      
+      const postUrl = `${window.location.origin}/post/${post.id}`;
+      
+      navigator.clipboard.writeText(postUrl).then(() => {
+        setSharedPost(post.id);
+        toast({
+          title: "Link copied!",
+          description: "Post link has been copied to clipboard",
+        });
+      }).catch(() => {
+        toast({
+          title: "Error",
+          description: "Failed to copy link to clipboard",
+          variant: "destructive"
+        });
       });
-    });
+    } catch (error) {
+      console.error("Error in handleShare:", error);
+      toast({
+        title: "Error",
+        description: "Failed to share post",
+        variant: "destructive"
+      });
+    }
   };
 
   const handlePostClick = () => {
-    // Check if post exists to prevent errors
-    if (!post) return;
-    
-    // Save visited post to localStorage
-    const visitedPosts = JSON.parse(localStorage.getItem("visitedPosts") || "[]");
-    const existingIndex = visitedPosts.findIndex((p: any) => p.id === post.id);
-    
-    if (existingIndex > -1) {
-      // Move to beginning if already exists
-      visitedPosts.splice(existingIndex, 1);
+    try {
+      // Check if post exists to prevent errors
+      if (!post || !post.id) return;
+      
+      // Create defensive copy to prevent null reference issues
+      const postCopy = {
+        id: post.id,
+        title: post.title || "",
+        subredditId: post.subredditId,
+        commentCount: post.commentCount || 0
+      };
+      
+      // Save visited post to localStorage
+      const visitedPosts = JSON.parse(localStorage.getItem("visitedPosts") || "[]");
+      const existingIndex = visitedPosts.findIndex((p: any) => p && p.id === postCopy.id);
+      
+      if (existingIndex > -1) {
+        // Move to beginning if already exists
+        visitedPosts.splice(existingIndex, 1);
+      }
+      
+      visitedPosts.unshift({
+        id: postCopy.id,
+        title: postCopy.title,
+        subredditId: postCopy.subredditId,
+        commentCount: postCopy.commentCount,
+        timestamp: Date.now()
+      });
+      
+      // Keep only last 100 visited posts
+      visitedPosts.splice(100);
+      
+      localStorage.setItem("visitedPosts", JSON.stringify(visitedPosts));
+      
+      // Trigger custom event to update sidebar
+      window.dispatchEvent(new CustomEvent("visitedPostsChanged"));
+      
+      setLocation(`/post/${postCopy.id}`);
+    } catch (error) {
+      console.error("Error in handlePostClick:", error);
+      // Fallback - try to navigate anyway if we have a valid post ID
+      if (post && post.id) {
+        setLocation(`/post/${post.id}`);
+      }
     }
-    
-    visitedPosts.unshift({
-      id: post.id,
-      title: post.title,
-      subredditId: post.subredditId,
-      commentCount: post.commentCount,
-      timestamp: Date.now()
-    });
-    
-    // Keep only last 100 visited posts
-    visitedPosts.splice(100);
-    
-    localStorage.setItem("visitedPosts", JSON.stringify(visitedPosts));
-    
-    // Trigger custom event to update sidebar
-    window.dispatchEvent(new CustomEvent("visitedPostsChanged"));
-    
-    setLocation(`/post/${post.id}`);
   };
 
   // Determine if saved (using optimistic state if available)
