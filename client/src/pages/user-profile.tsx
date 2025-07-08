@@ -11,8 +11,9 @@ import type { Post, Comment, Subreddit } from "@shared/schema";
 
 export default function UserProfile() {
   const { user, isAuthenticated } = useAuth();
+  const [displaySavedPosts, setDisplaySavedPosts] = useState(10);
+  const [displayComments, setDisplayComments] = useState(10);
   const [, setLocation] = useLocation();
-  const [visitedPostIds, setVisitedPostIds] = useState<number[]>([]);
 
   const { data: posts = [] } = useQuery<Post[]>({
     queryKey: ["/api/posts"],
@@ -23,31 +24,7 @@ export default function UserProfile() {
     },
   });
 
-  // Get visited posts specifically (same as sidebar)
-  const { data: visitedPostsData = [] } = useQuery<Post[]>({
-    queryKey: ["/api/posts/visited", visitedPostIds],
-    queryFn: async () => {
-      if (visitedPostIds.length === 0) return [];
-      
-      // Fetch each visited post individually, ensuring all IDs are valid numbers
-      const validIds = visitedPostIds.filter(id => typeof id === 'number' && !isNaN(id));
-      const promises = validIds.map(async (id) => {
-        try {
-          const response = await fetch(`/api/posts/${id}`);
-          if (response.ok) {
-            return response.json();
-          }
-        } catch (error) {
-          console.error(`Failed to fetch post ${id}:`, error);
-        }
-        return null;
-      });
-      
-      const results = await Promise.all(promises);
-      return results.filter(post => post !== null);
-    },
-    enabled: visitedPostIds.length > 0,
-  });
+
 
   const { data: allComments = [] } = useQuery<Comment[]>({
     queryKey: ["/api/comments/all", posts.map(p => p.id).sort()],
@@ -114,31 +91,6 @@ export default function UserProfile() {
            post.authorUsername === user.firstName ||
            post.authorUsername === user.email;
   });
-  
-  // Get user's own posts and visited posts (same logic as sidebar)
-  const userOwnPosts = posts
-    .filter(post => post.authorUsername === userIdentifier)
-    .sort((a, b) => {
-      const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-      const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-      return dateB - dateA;
-    });
-  
-  // Visited posts (excluding user's own posts to avoid duplicates)
-  const visitedPosts = visitedPostsData
-    .filter(post => post.authorUsername !== userIdentifier)
-    .sort((a, b) => {
-      // Sort by when they were visited (most recent first)
-      const aIndex = visitedPostIds.indexOf(a.id);
-      const bIndex = visitedPostIds.indexOf(b.id);
-      return aIndex - bIndex;
-    });
-  
-  // If no visited posts yet, show the latest posts from the platform
-  const defaultRecentPosts = visitedPostIds.length === 0 ? posts.slice(0, 20) : [];
-  
-  // Combine: user's posts first, then visited posts, then default posts if needed
-  const recentPosts = [...userOwnPosts, ...visitedPosts, ...defaultRecentPosts];
 
   const userComments = allComments.filter((comment: Comment) => {
     return comment.authorUsername === userIdentifier || 
@@ -166,17 +118,6 @@ export default function UserProfile() {
   };
 
   const handlePostClick = (postId: number) => {
-    // Ensure postId is a valid number
-    if (typeof postId !== 'number' || isNaN(postId)) {
-      console.error('Invalid post ID:', postId);
-      return;
-    }
-    
-    // Add to visited posts and update localStorage
-    const newVisitedIds = [postId, ...visitedPostIds.filter(id => id !== postId)];
-    setVisitedPostIds(newVisitedIds);
-    localStorage.setItem('visitedPosts', JSON.stringify(newVisitedIds));
-    
     // Set a flag to indicate we came from profile
     localStorage.setItem('cameFromProfile', 'true');
     setLocation(`/post/${postId}`);
@@ -244,52 +185,7 @@ export default function UserProfile() {
           </CardContent>
         </Card>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Recent Posts */}
-          <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
-            <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-                Recent Posts ({recentPosts.length})
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {recentPosts.length === 0 ? (
-                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                    No posts yet
-                  </div>
-                ) : (
-                  recentPosts.map((post) => (
-                    <div
-                      key={`profile-recent-${post.id}`}
-                      onClick={() => handlePostClick(post.id)}
-                      className="p-4 rounded-lg border border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-reddit-dark transition-colors cursor-pointer"
-                    >
-                      {getSubredditName(post.subredditId ?? undefined) && (
-                        <div className="mb-2">
-                          <span className="text-xs text-blue-600 dark:text-blue-400 font-medium">
-                            r/{getSubredditName(post.subredditId ?? undefined)}
-                          </span>
-                        </div>
-                      )}
-                      <h3 className="font-medium text-gray-900 dark:text-white mb-2 line-clamp-2">
-                        {post.title}
-                      </h3>
-                      <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
-                        <div className="flex items-center space-x-3">
-                          <div className="flex items-center space-x-1">
-                            <MessageCircle className="h-4 w-4" />
-                            <span>{post.commentCount || 0}</span>
-                          </div>
-                        </div>
-                        <span>{formatTimeAgo(post.createdAt)}</span>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* Saved Posts */}
           <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
