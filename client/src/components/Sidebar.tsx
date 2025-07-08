@@ -18,6 +18,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   const [visitedPostIds, setVisitedPostIds] = useState<number[]>([]);
   const [displayCount, setDisplayCount] = useState(10); // Start with 10 posts
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isCleared, setIsCleared] = useState(false); // Track if user has cleared posts
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -146,8 +147,8 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
       return aIndex - bIndex;
     });
   
-  // If no visited posts yet, show the latest posts from the platform
-  const defaultRecentPosts = visitedPostIds.length === 0 ? posts.slice(0, 10) : [];
+  // If no visited posts yet and not cleared, show the latest posts from the platform
+  const defaultRecentPosts = (visitedPostIds.length === 0 && !isCleared) ? posts.slice(0, 10) : [];
   
   // Combine: user's posts first, then visited posts, then default posts if needed
   const allRecentPosts = [...userPosts, ...filteredVisitedPosts, ...defaultRecentPosts];
@@ -168,6 +169,9 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
       console.error('Invalid post ID:', postId);
       return;
     }
+    
+    // Reset cleared state when user clicks on a post
+    setIsCleared(false);
     
     // Add to visited posts and update localStorage
     const newVisitedIds = [postId, ...visitedPostIds.filter(id => id !== postId)];
@@ -225,8 +229,9 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   const clearRecentPosts = () => {
     console.log('Clear button clicked. visitedPostIds:', visitedPostIds);
     
-    // Always clear visited posts 
+    // Clear visited posts and set cleared state
     setVisitedPostIds([]);
+    setIsCleared(true);
     localStorage.removeItem('visitedPosts');
     setDisplayCount(10); // Reset display count
     
@@ -237,7 +242,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     // Trigger custom event for other components
     window.dispatchEvent(new CustomEvent('visitedPostsChanged'));
     
-    console.log('Clear completed. Should now show default posts.');
+    console.log('Clear completed. Posts should now be hidden.');
   };
 
   const communityColors = [
@@ -292,7 +297,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
         >
           {recentPosts.length === 0 ? (
             <div className="text-sm text-gray-500 text-center py-8 px-4">
-              No posts available
+              {isCleared ? "Recent posts cleared" : "No posts available"}
             </div>
           ) : (
             <div className="space-y-0">
