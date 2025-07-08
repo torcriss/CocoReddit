@@ -168,6 +168,10 @@ Changelog:
 - July 08, 2025. Completely removed upvote/downvote voting system from entire platform: removed from PostCard, post detail page, CommentThread, Sidebar, and User Profile page
 - July 08, 2025. Simplified top navigation to show only Home, Hot (most comments), and New (most recent posts) options
 - July 08, 2025. Updated all components to remove voting UI elements while maintaining comments, share, and save functionality
+- July 08, 2025. Replaced Recent Posts with Saved Posts in sidebar for cleaner user experience
+- July 08, 2025. Updated User Profile page to 2-column layout showing only Saved Posts and Recent Comments sections
+- July 08, 2025. Added Clear Saved Posts button to both sidebar and profile page with sync functionality
+- July 08, 2025. Made sidebar fixed to right side of screen for consistent positioning across all pages
 ```
 
 ## User Preferences

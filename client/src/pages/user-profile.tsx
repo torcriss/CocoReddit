@@ -1,19 +1,23 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Calendar, User, ArrowLeft } from "lucide-react";
+import { MessageCircle, Calendar, User, ArrowLeft, Trash2 } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
 import type { Post, Comment, Subreddit } from "@shared/schema";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function UserProfile() {
   const { user, isAuthenticated } = useAuth();
   const [displaySavedPosts, setDisplaySavedPosts] = useState(10);
   const [displayComments, setDisplayComments] = useState(10);
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: posts = [] } = useQuery<Post[]>({
     queryKey: ["/api/posts"],
@@ -117,6 +121,36 @@ export default function UserProfile() {
     return subreddit?.name || null;
   };
 
+  // Clear all saved posts mutation
+  const clearSavedPostsMutation = useMutation({
+    mutationFn: async () => {
+      // Remove all saved posts one by one
+      const promises = savedPosts.map(post => 
+        apiRequest(`/api/saved-posts/${post.id}`, { method: "DELETE" })
+      );
+      await Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
+      toast({
+        title: "Success",
+        description: "All saved posts have been cleared",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to clear saved posts",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleClearSavedPosts = () => {
+    if (savedPosts.length === 0) return;
+    clearSavedPostsMutation.mutate();
+  };
+
   const handlePostClick = (postId: number) => {
     // Set a flag to indicate we came from profile
     localStorage.setItem('cameFromProfile', 'true');
@@ -190,9 +224,23 @@ export default function UserProfile() {
           {/* Saved Posts */}
           <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700">
             <CardHeader>
-              <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-                Saved Posts ({savedPosts.length})
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
+                  Saved Posts ({savedPosts.length})
+                </CardTitle>
+                {savedPosts.length > 0 && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleClearSavedPosts}
+                    disabled={clearSavedPostsMutation.isPending}
+                    className="text-gray-400 hover:text-red-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    title="Clear all saved posts"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">

@@ -1,8 +1,11 @@
 import { useState, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import type { Post, Subreddit } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { Trash2 } from "lucide-react";
 
 interface SidebarProps {
   selectedSubreddit?: number | null;
@@ -15,6 +18,8 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   const [displayCount, setDisplayCount] = useState(10);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Query to get saved posts
   const { data: savedPosts = [] } = useQuery<Post[]>({
@@ -72,14 +77,56 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     }
   };
 
+  // Clear all saved posts mutation
+  const clearSavedPostsMutation = useMutation({
+    mutationFn: async () => {
+      // Remove all saved posts one by one
+      const promises = savedPosts.map(post => 
+        apiRequest(`/api/saved-posts/${post.id}`, { method: "DELETE" })
+      );
+      await Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
+      toast({
+        title: "Success",
+        description: "All saved posts have been cleared",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to clear saved posts",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleClearSavedPosts = () => {
+    if (savedPosts.length === 0) return;
+    clearSavedPostsMutation.mutate();
+  };
+
   const displayedSavedPosts = savedPosts.slice(0, displayCount);
   const hasMorePosts = savedPosts.length > displayCount;
 
   return (
-    <div className="w-80 bg-black text-white h-screen flex flex-col border-l border-gray-800">
+    <div className="fixed right-0 top-0 w-80 bg-black text-white h-screen flex flex-col border-l border-gray-800 z-10">
       {/* Header */}
       <div className="p-4 border-b border-gray-800">
-        <h2 className="text-lg font-semibold mb-4">SAVED POSTS</h2>
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold">SAVED POSTS</h2>
+          {savedPosts.length > 0 && (
+            <button
+              onClick={handleClearSavedPosts}
+              disabled={clearSavedPostsMutation.isPending}
+              className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded transition-colors disabled:opacity-50"
+              title="Clear all saved posts"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Saved Posts List */}
