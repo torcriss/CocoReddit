@@ -80,6 +80,10 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
       return results.filter(post => post !== null);
     },
     enabled: visitedPostIds.length > 0,
+    staleTime: 5 * 60 * 1000, // 5 minutes - prevents unnecessary refetches
+    gcTime: 10 * 60 * 1000, // 10 minutes - keeps data in cache longer
+    refetchOnWindowFocus: false, // Prevents flicker on navigation
+    refetchOnReconnect: false, // Prevents flicker on reconnect
   });
 
   // Set up event listeners for localStorage changes
@@ -146,7 +150,13 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   const defaultRecentPosts = (visitedPostIds.length === 0 && !isCleared) ? posts.slice(0, 10) : [];
   
   // Combine: user's posts first, then visited posts, then default posts if needed
+  // Use posts data as fallback to prevent flickering when visitedPosts query is loading
   const allRecentPosts = [...userPosts, ...filteredVisitedPosts, ...defaultRecentPosts];
+  
+  // If we have visited post IDs but the query is still loading, show placeholder data from main posts
+  const fallbackPosts = visitedPostIds.length > 0 && (!visitedPosts || visitedPosts.length === 0) 
+    ? visitedPostIds.slice(0, 10).map(id => posts.find(p => p.id === id)).filter(Boolean) 
+    : [];
   
   // Remove duplicates by post ID
   const uniqueRecentPosts = allRecentPosts.filter((post, index, array) => 
