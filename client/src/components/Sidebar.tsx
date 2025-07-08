@@ -140,8 +140,14 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   
   // Combine: user's posts first, then visited posts, then default posts if needed
   const allRecentPosts = [...userPosts, ...filteredVisitedPosts, ...defaultRecentPosts];
-  const recentPosts = allRecentPosts.slice(0, displayCount);
-  const hasMorePosts = allRecentPosts.length > displayCount;
+  
+  // Remove duplicates by post ID
+  const uniqueRecentPosts = allRecentPosts.filter((post, index, array) => 
+    array.findIndex(p => p.id === post.id) === index
+  );
+  
+  const recentPosts = uniqueRecentPosts.slice(0, displayCount);
+  const hasMorePosts = uniqueRecentPosts.length > displayCount;
   
 
 
@@ -206,20 +212,21 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   }, []);
 
   const clearRecentPosts = () => {
-    if (visitedPostIds.length > 0) {
-      // If there are visited posts, clear them
-      setVisitedPostIds([]);
-      localStorage.removeItem('visitedPosts');
-      setDisplayCount(10); // Reset display count
-      
-      // Force refresh the visited posts query and trigger custom event
-      queryClient.invalidateQueries({ queryKey: ["/api/posts/visited"] });
-      window.dispatchEvent(new CustomEvent('visitedPostsChanged'));
-    } else {
-      // If showing default posts, refresh the posts list
-      queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
-      setDisplayCount(10); // Reset display count
-    }
+    console.log('Clear button clicked. visitedPostIds:', visitedPostIds);
+    
+    // Always clear visited posts first
+    setVisitedPostIds([]);
+    localStorage.removeItem('visitedPosts');
+    setDisplayCount(10); // Reset display count
+    
+    // Force refresh all relevant queries
+    queryClient.invalidateQueries({ queryKey: ["/api/posts/visited"] });
+    queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
+    
+    // Trigger custom event for other components
+    window.dispatchEvent(new CustomEvent('visitedPostsChanged'));
+    
+    console.log('Clear completed');
   };
 
   const communityColors = [
