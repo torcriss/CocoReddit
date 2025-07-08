@@ -111,7 +111,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   const hasMorePosts = savedPosts.length > displayCount;
 
   return (
-    <div className="fixed right-0 top-0 w-80 bg-black text-white h-screen flex flex-col border-l border-gray-800 z-10">
+    <div className="fixed right-0 top-14 w-80 bg-black text-white h-[calc(100vh-3.5rem)] flex flex-col border-l border-gray-800 z-10">
       {/* Header */}
       <div className="p-4 border-b border-gray-800">
         <div className="flex items-center justify-between mb-4">
