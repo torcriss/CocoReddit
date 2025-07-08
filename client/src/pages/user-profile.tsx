@@ -55,26 +55,7 @@ export default function UserProfile() {
     queryKey: ["/api/subreddits"],
   });
 
-  // Load visited posts from localStorage on component mount
-  useEffect(() => {
-    const stored = localStorage.getItem('visitedPosts');
-    if (stored) {
-      try {
-        const parsedIds = JSON.parse(stored);
-        // Validate that all items are numbers
-        const validIds = parsedIds.filter((id: any) => typeof id === 'number' && !isNaN(id));
-        setVisitedPostIds(validIds);
-        
-        // If we had to filter out invalid IDs, update localStorage
-        if (validIds.length !== parsedIds.length) {
-          localStorage.setItem('visitedPosts', JSON.stringify(validIds));
-        }
-      } catch {
-        setVisitedPostIds([]);
-        localStorage.removeItem('visitedPosts');
-      }
-    }
-  }, []);
+
 
   if (!isAuthenticated || !user) {
     return (
