@@ -167,15 +167,16 @@ export default function PostDetail() {
       return { previousSaved: currentSaved };
     },
     onSuccess: () => {
+      // Show appropriate message based on the action taken
+      const wasSaved = !!isSaved;
+      toast({
+        title: wasSaved ? "Post unsaved" : "Post saved",
+        description: wasSaved ? "Removed from your saved posts" : "Added to your saved posts",
+      });
+      
       // Invalidate all related saved posts queries with consistent cache keys
       queryClient.invalidateQueries({ queryKey: ["/api/saved-posts", parseInt(id!)] });
       queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
-      
-      const currentSaved = optimisticSaved !== null ? optimisticSaved : !!isSaved;
-      toast({
-        title: currentSaved ? "Post saved" : "Post unsaved",
-        description: currentSaved ? "Added to your saved posts" : "Removed from your saved posts",
-      });
     },
     onError: (error: Error, variables, context) => {
       // Revert optimistic update

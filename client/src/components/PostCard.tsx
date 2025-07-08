@@ -180,15 +180,8 @@ export default function PostCard({ post }: PostCardProps) {
   // Save post mutation
   const saveMutation = useMutation({
     mutationFn: async () => {
-      // Use the actual current state, not the optimistic state
-      const currentSaved = !!isSaved;
-      if (currentSaved) {
-        // Post is currently saved, so unsave it
-        return await apiRequest("DELETE", `/api/saved-posts/${post.id}`);
-      } else {
-        // Post is not saved, so save it
-        return await apiRequest("POST", `/api/saved-posts`, { postId: post.id });
-      }
+      // Always use POST route which handles both save and unsave
+      return await apiRequest("POST", `/api/saved-posts`, { postId: post.id });
     },
     onMutate: async () => {
       const previousSaved = optimisticSaved !== null ? optimisticSaved : !!isSaved;
