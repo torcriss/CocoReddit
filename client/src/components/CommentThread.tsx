@@ -57,11 +57,7 @@ function CommentItem({ comment, onReply, postId }: CommentItemProps) {
   // Edit comment mutation
   const editCommentMutation = useMutation({
     mutationFn: async (content: string) => {
-      return await apiRequest(`/api/comments/${comment.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
-      });
+      return await apiRequest("PATCH", `/api/comments/${comment.id}`, { content });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts", postId, "comments"] });
@@ -94,9 +90,7 @@ function CommentItem({ comment, onReply, postId }: CommentItemProps) {
   // Delete comment mutation
   const deleteCommentMutation = useMutation({
     mutationFn: async () => {
-      return await apiRequest(`/api/comments/${comment.id}`, {
-        method: "DELETE",
-      });
+      return await apiRequest("DELETE", `/api/comments/${comment.id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts", postId, "comments"] });
