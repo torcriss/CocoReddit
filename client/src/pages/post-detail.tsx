@@ -1,6 +1,6 @@
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Share, Bookmark, ChevronUp, ChevronDown, BookmarkPlus, Loader2 } from "lucide-react";
+import { ArrowLeft, Share, Bookmark, BookmarkPlus, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import Header from "@/components/Header";
@@ -19,13 +19,12 @@ import { useLocation } from "wouter";
 
 export default function PostDetail() {
   const { id } = useParams();
-  const [userVote, setUserVote] = useState<number | null>(null);
   const [optimisticSaved, setOptimisticSaved] = useState<boolean | null>(null);
   const [cameFromProfile, setCameFromProfile] = useState<boolean>(false);
 
   const [, setLocation] = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState<"home" | "popular">("home");
+
   const queryClient = useQueryClient();
   const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
@@ -121,37 +120,7 @@ export default function PostDetail() {
     }
   }, [isSaved]);
 
-  const voteMutation = useMutation({
-    mutationFn: async (voteType: number) => {
-      return apiRequest("POST", "/api/votes", {
-        userId: "user", // Server will get user from session
-        postId: parseInt(id!),
-        voteType,
-      });
-    },
-    onSuccess: () => {
-      // Only invalidate the specific post, not the posts list to prevent reordering
-      queryClient.invalidateQueries({ queryKey: ["/api/posts", id] });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Login Required",
-          description: "You need to login to vote on posts",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Error",
-        description: "Failed to vote. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
+
 
   const saveMutation = useMutation({
     mutationFn: async () => {
@@ -203,25 +172,7 @@ export default function PostDetail() {
     },
   });
 
-  const handleVote = (voteType: number) => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Login Required",
-        description: "You need to login to vote on posts",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
 
-    const newVote = userVote === voteType ? null : voteType;
-    setUserVote(newVote);
-    if (newVote !== null) {
-      voteMutation.mutate(newVote);
-    }
-  };
 
   const handleSave = () => {
     if (!isAuthenticated) {
@@ -251,10 +202,7 @@ export default function PostDetail() {
     }
   };
 
-  const handleViewModeChange = (mode: "home" | "popular") => {
-    setViewMode(mode);
-    setLocation("/"); // Navigate back to home with new view mode
-  };
+
 
   const formatTimeAgo = (dateStr: string | Date | null) => {
     if (!dateStr) return "unknown";
@@ -271,8 +219,8 @@ export default function PostDetail() {
       <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark">
         <Header 
           onSearch={handleSearch}
-          viewMode={viewMode}
-          onViewModeChange={handleViewModeChange}
+          sortBy="home"
+          onSortByChange={() => {}}
         />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="text-center py-8">
@@ -288,8 +236,8 @@ export default function PostDetail() {
       <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark">
         <Header 
           onSearch={handleSearch}
-          viewMode={viewMode}
-          onViewModeChange={handleViewModeChange}
+          sortBy="home"
+          onSortByChange={() => {}}
         />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mr-80 lg:mr-80">
           <div className="text-center py-8">
@@ -311,8 +259,8 @@ export default function PostDetail() {
     <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark">
       <Header 
         onSearch={handleSearch}
-        viewMode={viewMode}
-        onViewModeChange={handleViewModeChange}
+        sortBy="home"
+        onSortByChange={() => {}}
       />
       
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 mr-80 lg:mr-80">
@@ -328,44 +276,7 @@ export default function PostDetail() {
 
         {/* Post Details */}
         <Card className="bg-white dark:bg-reddit-darker border border-gray-200 dark:border-gray-700 mb-6">
-          <div className="flex">
-            {/* Voting */}
-            <div className="flex flex-col items-center p-4 bg-gray-50 dark:bg-reddit-dark">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleVote(1)}
-                className={`p-2 w-10 h-10 transition-all duration-200 rounded-md ${
-                  userVote === 1 
-                    ? "text-orange-500 bg-orange-100 dark:bg-orange-900/30 border border-orange-300 dark:border-orange-700 shadow-sm" 
-                    : "text-gray-400 dark:text-gray-500 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-900/20 hover:border-orange-200 dark:hover:border-orange-800 border border-transparent"
-                }`}
-              >
-                <ChevronUp className="h-5 w-5" />
-              </Button>
-              <span className={`text-base font-bold py-2 transition-colors duration-200 ${
-                userVote === 1 ? "text-orange-500" : 
-                userVote === -1 ? "text-purple-500" : 
-                "text-gray-600 dark:text-gray-300"
-              }`}>
-                {post.votes || 0}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleVote(-1)}
-                className={`p-2 w-10 h-10 transition-all duration-200 rounded-md ${
-                  userVote === -1 
-                    ? "text-purple-500 bg-purple-100 dark:bg-purple-900/30 border border-purple-300 dark:border-purple-700 shadow-sm" 
-                    : "text-gray-400 dark:text-gray-500 hover:text-purple-500 hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-200 dark:hover:border-purple-800 border border-transparent"
-                }`}
-              >
-                <ChevronDown className="h-5 w-5" />
-              </Button>
-            </div>
-
-            {/* Post Content */}
-            <div className="flex-1 p-6">
+          <div className="p-6">
               <div className="flex items-center text-xs text-gray-500 dark:text-gray-400 mb-3">
                 <span className="font-medium text-gray-900 dark:text-white">
                   r/{subreddit?.name || "general"}
@@ -458,7 +369,6 @@ export default function PostDetail() {
                   <span>{(optimisticSaved !== null ? optimisticSaved : !!isSaved) ? 'Saved' : 'Save'}</span>
                 </Button>
               </div>
-            </div>
           </div>
         </Card>
 
