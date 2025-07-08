@@ -82,7 +82,7 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     mutationFn: async () => {
       // Remove all saved posts one by one
       const promises = savedPosts.map(post => 
-        apiRequest(`/api/saved-posts/${post.id}`, { method: "DELETE" })
+        apiRequest("DELETE", `/api/saved-posts/${post.id}`)
       );
       await Promise.all(promises);
     },
