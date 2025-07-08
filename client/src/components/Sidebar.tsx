@@ -206,14 +206,20 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
   }, []);
 
   const clearRecentPosts = () => {
-    // Clear visited posts
-    setVisitedPostIds([]);
-    localStorage.removeItem('visitedPosts');
-    setDisplayCount(10); // Reset display count
-    
-    // Force refresh the visited posts query and trigger custom event
-    queryClient.invalidateQueries({ queryKey: ["/api/posts/visited"] });
-    window.dispatchEvent(new CustomEvent('visitedPostsChanged'));
+    if (visitedPostIds.length > 0) {
+      // If there are visited posts, clear them
+      setVisitedPostIds([]);
+      localStorage.removeItem('visitedPosts');
+      setDisplayCount(10); // Reset display count
+      
+      // Force refresh the visited posts query and trigger custom event
+      queryClient.invalidateQueries({ queryKey: ["/api/posts/visited"] });
+      window.dispatchEvent(new CustomEvent('visitedPostsChanged'));
+    } else {
+      // If showing default posts, refresh the posts list
+      queryClient.invalidateQueries({ queryKey: ["/api/posts"] });
+      setDisplayCount(10); // Reset display count
+    }
   };
 
   const communityColors = [
@@ -245,13 +251,13 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
             <h2 className="text-xs font-semibold text-gray-400 uppercase tracking-wide">
               RECENT POSTS
             </h2>
-            {visitedPostIds.length > 0 && (
+            {recentPosts.length > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={clearRecentPosts}
                 className="text-gray-500 hover:text-red-400 hover:bg-red-900/20 p-1 h-6 w-6 text-xs"
-                title="Clear visited posts"
+                title={visitedPostIds.length > 0 ? "Clear visited posts" : "Clear recent posts"}
               >
                 Clear
               </Button>
