@@ -162,7 +162,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId, // user ID
         req.user.claims.email, // user email
         req.user.claims.firstName, // user first name
-        req.user.claims.firstName || req.user.claims.email // fallback logic used in comment creation
+        req.user.claims.firstName || req.user.claims.email, // fallback logic used in comment creation
+        req.user.claims.email?.split('@')[0] // email username part
       ].filter(Boolean); // remove any undefined/null values
       
       if (!userIdentifiers.includes(existingComment.authorUsername)) {
@@ -195,10 +196,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         userId, // user ID
         req.user.claims.email, // user email
         req.user.claims.firstName, // user first name
-        req.user.claims.firstName || req.user.claims.email // fallback logic used in comment creation
+        req.user.claims.firstName || req.user.claims.email, // fallback logic used in comment creation
+        req.user.claims.email?.split('@')[0] // email username part
       ].filter(Boolean); // remove any undefined/null values
       
       console.log("Comment authorUsername:", existingComment.authorUsername);
+      console.log("User claims:", JSON.stringify(req.user.claims, null, 2));
       console.log("User identifiers:", userIdentifiers);
       
       if (!userIdentifiers.includes(existingComment.authorUsername)) {
