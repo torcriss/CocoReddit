@@ -13,13 +13,36 @@ interface SidebarProps {
   onSubredditSelect?: (subredditId: number | null) => void;
 }
 
+// Initialize visited posts synchronously to prevent flickering
+const getInitialVisitedPosts = (): number[] => {
+  try {
+    const stored = localStorage.getItem('visitedPosts');
+    if (stored) {
+      const parsedData = JSON.parse(stored);
+      if (Array.isArray(parsedData)) {
+        if (parsedData.length > 0) {
+          if (typeof parsedData[0] === 'number') {
+            return parsedData.filter((id: any) => typeof id === 'number' && !isNaN(id));
+          } else if (typeof parsedData[0] === 'object' && parsedData[0].id) {
+            return parsedData
+              .filter((item: any) => item && typeof item.id === 'number' && !isNaN(item.id))
+              .map((item: any) => item.id);
+          }
+        }
+      }
+    }
+  } catch {
+    localStorage.removeItem('visitedPosts');
+  }
+  return [];
+};
+
 export default function Sidebar({ selectedSubreddit, onSubredditSelect }: SidebarProps) {
   const [, setLocation] = useLocation();
-  const [visitedPostIds, setVisitedPostIds] = useState<number[]>([]);
+  const [visitedPostIds, setVisitedPostIds] = useState<number[]>(getInitialVisitedPosts());
   const [displayCount, setDisplayCount] = useState(10); // Start with 10 posts
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [isCleared, setIsCleared] = useState(false); // Track if user has cleared posts
-  const [isInitialLoad, setIsInitialLoad] = useState(true); // Track initial loading
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -59,45 +82,13 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     enabled: visitedPostIds.length > 0,
   });
 
-  // Load visited posts from localStorage immediately and synchronously
+  // Set up event listeners for localStorage changes
   useEffect(() => {
     const loadVisitedPosts = () => {
-      const stored = localStorage.getItem('visitedPosts');
-      if (stored) {
-        try {
-          const parsedData = JSON.parse(stored);
-          // Handle both old format (array of IDs) and new format (array of objects)
-          let validIds: number[] = [];
-          
-          if (Array.isArray(parsedData)) {
-            if (parsedData.length > 0) {
-              if (typeof parsedData[0] === 'number') {
-                // Old format: array of IDs
-                validIds = parsedData.filter((id: any) => typeof id === 'number' && !isNaN(id));
-              } else if (typeof parsedData[0] === 'object' && parsedData[0].id) {
-                // New format: array of objects with id property
-                validIds = parsedData
-                  .filter((item: any) => item && typeof item.id === 'number' && !isNaN(item.id))
-                  .map((item: any) => item.id);
-              }
-            }
-          }
-          
-          setVisitedPostIds(validIds);
-          console.log('Loaded visited post IDs:', validIds);
-        } catch {
-          setVisitedPostIds([]);
-          localStorage.removeItem('visitedPosts');
-        }
-      } else {
-        setVisitedPostIds([]);
-      }
-      // Set initial load to false immediately to prevent flickering
-      setTimeout(() => setIsInitialLoad(false), 100);
+      const newIds = getInitialVisitedPosts();
+      setVisitedPostIds(newIds);
+      console.log('Loaded visited post IDs:', newIds);
     };
-
-    // Load immediately to prevent flicker
-    loadVisitedPosts();
 
     // Listen for localStorage changes (when posts are visited from other components)
     const handleStorageChange = (e: StorageEvent) => {
@@ -299,13 +290,9 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
           className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent"
           style={{ overscrollBehavior: 'contain' }}
         >
-          {recentPosts.length === 0 && !isInitialLoad ? (
+          {recentPosts.length === 0 ? (
             <div className="text-sm text-gray-500 text-center py-8 px-4">
               {isCleared ? "Recent posts cleared" : "No posts available"}
-            </div>
-          ) : recentPosts.length === 0 && isInitialLoad ? (
-            <div className="text-sm text-gray-500 text-center py-8 px-4">
-              Loading recent posts...
             </div>
           ) : (
             <div className="space-y-0">
