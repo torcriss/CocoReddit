@@ -165,6 +165,9 @@ Changelog:
 - July 07, 2025. Moved sidebar to right side and updated all page layouts to accommodate right-side positioning
 - July 07, 2025. Redesigned PostCard component with Reddit-style layout: community avatars, compact design, horizontal action bar with voting/comments/share/save
 - July 07, 2025. Fixed API error: added missing DELETE route for saved posts (/api/saved-posts/:postId) to handle unsaving posts correctly
+- July 08, 2025. Completely removed upvote/downvote voting system from entire platform: removed from PostCard, post detail page, CommentThread, Sidebar, and User Profile page
+- July 08, 2025. Simplified top navigation to show only Home, Hot (most comments), and New (most recent posts) options
+- July 08, 2025. Updated all components to remove voting UI elements while maintaining comments, share, and save functionality
 ```
 
 ## User Preferences

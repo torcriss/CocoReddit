@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { MessageCircle, ChevronUp, Trash2, Loader2 } from "lucide-react";
+import { MessageCircle, Trash2, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
@@ -281,10 +281,6 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
                       
                       {/* Engagement Stats */}
                       <div className="flex items-center space-x-4 text-xs text-gray-500">
-                        <div className="flex items-center space-x-1">
-                          <ChevronUp className="h-3 w-3" />
-                          <span>{Math.max(0, post.votes || 0)} upvotes</span>
-                        </div>
                         <div className="flex items-center space-x-1">
                           <MessageCircle className="h-3 w-3" />
                           <span>{post.commentCount || 0} comments</span>

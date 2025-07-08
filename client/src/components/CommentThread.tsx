@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest } from "@/lib/queryClient";
@@ -20,64 +19,8 @@ interface CommentItemProps {
 }
 
 function CommentItem({ comment, onReply }: CommentItemProps) {
-  const [userVote, setUserVote] = useState<number | null>(null);
-  const queryClient = useQueryClient();
   const { isAuthenticated } = useAuth();
   const { toast } = useToast();
-
-  const voteMutation = useMutation({
-    mutationFn: async (voteType: number) => {
-      return apiRequest("POST", "/api/votes", {
-        userId: "user", // Server will get user from session
-        commentId: comment.id,
-        voteType,
-      });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/posts", comment.postId, "comments"] });
-      // Invalidate profile page comments query
-      queryClient.invalidateQueries({ queryKey: ["/api/comments/all"] });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Login Required",
-          description: "You need to login to vote on comments",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      toast({
-        title: "Error",
-        description: "Failed to vote. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleVote = (voteType: number) => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Login Required",
-        description: "You need to login to vote on comments",
-        variant: "destructive",
-      });
-      setTimeout(() => {
-        window.location.href = "/api/login";
-      }, 500);
-      return;
-    }
-
-    if (userVote === voteType) {
-      setUserVote(null);
-    } else {
-      setUserVote(voteType);
-      voteMutation.mutate(voteType);
-    }
-  };
 
   const formatTimeAgo = (date: Date | string | null) => {
     if (!date) return "unknown";
@@ -115,39 +58,6 @@ function CommentItem({ comment, onReply }: CommentItemProps) {
             {comment.content}
           </p>
           <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleVote(1)}
-                className={`p-1 ${
-                  userVote === 1 
-                    ? "text-reddit-orange" 
-                    : "text-gray-400 hover:text-reddit-orange"
-                }`}
-              >
-                <ChevronUp className="w-4 h-4" />
-              </Button>
-              <span className={`text-xs font-medium ${
-                userVote === 1 ? "text-reddit-orange" : 
-                userVote === -1 ? "text-blue-500" : 
-                "text-gray-600 dark:text-gray-400"
-              }`}>
-                {comment.votes || 0}
-              </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleVote(-1)}
-                className={`p-1 ${
-                  userVote === -1 
-                    ? "text-blue-500" 
-                    : "text-gray-400 hover:text-blue-500"
-                }`}
-              >
-                <ChevronDown className="w-4 h-4" />
-              </Button>
-            </div>
             {isAuthenticated && (
               <Button
                 variant="ghost"

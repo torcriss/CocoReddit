@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, ChevronUp, Calendar, User, ArrowLeft } from "lucide-react";
+import { MessageCircle, Calendar, User, ArrowLeft } from "lucide-react";
 import { formatDistanceToNow, format } from "date-fns";
 import { useLocation } from "wouter";
 import { useEffect, useState } from "react";
@@ -254,10 +254,6 @@ export default function UserProfile() {
                       <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                         <div className="flex items-center space-x-3">
                           <div className="flex items-center space-x-1">
-                            <ChevronUp className="h-4 w-4" />
-                            <span>{post.votes || 0}</span>
-                          </div>
-                          <div className="flex items-center space-x-1">
                             <MessageCircle className="h-4 w-4" />
                             <span>{post.commentCount || 0}</span>
                           </div>
@@ -303,10 +299,6 @@ export default function UserProfile() {
                       </h3>
                       <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                         <div className="flex items-center space-x-3">
-                          <div className="flex items-center space-x-1">
-                            <ChevronUp className="h-4 w-4" />
-                            <span>{post.votes || 0}</span>
-                          </div>
                           <div className="flex items-center space-x-1">
                             <MessageCircle className="h-4 w-4" />
                             <span>{post.commentCount || 0}</span>
@@ -365,10 +357,6 @@ export default function UserProfile() {
                         </p>
                         <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400">
                           <div className="flex items-center space-x-4">
-                            <div className="flex items-center space-x-1">
-                              <ChevronUp className="h-4 w-4" />
-                              <span>{comment.votes || 0}</span>
-                            </div>
                             <div className="flex items-center space-x-1">
                               <MessageCircle className="h-4 w-4" />
                               <span>{commentPost?.commentCount || 0}</span>
