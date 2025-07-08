@@ -37,8 +37,9 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     queryFn: async () => {
       if (visitedPostIds.length === 0) return [];
       
-      // Fetch each visited post individually
-      const promises = visitedPostIds.map(async (id) => {
+      // Fetch each visited post individually, ensuring all IDs are valid numbers
+      const validIds = visitedPostIds.filter(id => typeof id === 'number' && !isNaN(id));
+      const promises = validIds.map(async (id) => {
         try {
           const response = await fetch(`/api/posts/${id}`);
           if (response.ok) {
@@ -63,9 +64,17 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
       if (stored) {
         try {
           const parsedIds = JSON.parse(stored);
-          setVisitedPostIds(parsedIds);
+          // Validate that all items are numbers
+          const validIds = parsedIds.filter((id: any) => typeof id === 'number' && !isNaN(id));
+          setVisitedPostIds(validIds);
+          
+          // If we had to filter out invalid IDs, update localStorage
+          if (validIds.length !== parsedIds.length) {
+            localStorage.setItem('visitedPosts', JSON.stringify(validIds));
+          }
         } catch {
           setVisitedPostIds([]);
+          localStorage.removeItem('visitedPosts');
         }
       } else {
         setVisitedPostIds([]);
@@ -134,6 +143,12 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
 
 
   const handlePostClick = (postId: number) => {
+    // Ensure postId is a valid number
+    if (typeof postId !== 'number' || isNaN(postId)) {
+      console.error('Invalid post ID:', postId);
+      return;
+    }
+    
     // Add to visited posts and update localStorage
     const newVisitedIds = [postId, ...visitedPostIds.filter(id => id !== postId)];
     setVisitedPostIds(newVisitedIds);
@@ -192,6 +207,9 @@ export default function Sidebar({ selectedSubreddit, onSubredditSelect }: Sideba
     setVisitedPostIds([]);
     localStorage.removeItem('visitedPosts');
     setDisplayCount(10); // Reset display count
+    
+    // Force refresh the visited posts query
+    queryClient.invalidateQueries({ queryKey: ["/api/posts/visited"] });
   };
 
   const communityColors = [

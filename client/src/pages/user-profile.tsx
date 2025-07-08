@@ -29,8 +29,9 @@ export default function UserProfile() {
     queryFn: async () => {
       if (visitedPostIds.length === 0) return [];
       
-      // Fetch each visited post individually
-      const promises = visitedPostIds.map(async (id) => {
+      // Fetch each visited post individually, ensuring all IDs are valid numbers
+      const validIds = visitedPostIds.filter(id => typeof id === 'number' && !isNaN(id));
+      const promises = validIds.map(async (id) => {
         try {
           const response = await fetch(`/api/posts/${id}`);
           if (response.ok) {
@@ -78,9 +79,18 @@ export default function UserProfile() {
     const stored = localStorage.getItem('visitedPosts');
     if (stored) {
       try {
-        setVisitedPostIds(JSON.parse(stored));
+        const parsedIds = JSON.parse(stored);
+        // Validate that all items are numbers
+        const validIds = parsedIds.filter((id: any) => typeof id === 'number' && !isNaN(id));
+        setVisitedPostIds(validIds);
+        
+        // If we had to filter out invalid IDs, update localStorage
+        if (validIds.length !== parsedIds.length) {
+          localStorage.setItem('visitedPosts', JSON.stringify(validIds));
+        }
       } catch {
         setVisitedPostIds([]);
+        localStorage.removeItem('visitedPosts');
       }
     }
   }, []);
@@ -153,6 +163,17 @@ export default function UserProfile() {
   };
 
   const handlePostClick = (postId: number) => {
+    // Ensure postId is a valid number
+    if (typeof postId !== 'number' || isNaN(postId)) {
+      console.error('Invalid post ID:', postId);
+      return;
+    }
+    
+    // Add to visited posts and update localStorage
+    const newVisitedIds = [postId, ...visitedPostIds.filter(id => id !== postId)];
+    setVisitedPostIds(newVisitedIds);
+    localStorage.setItem('visitedPosts', JSON.stringify(newVisitedIds));
+    
     // Set a flag to indicate we came from profile
     localStorage.setItem('cameFromProfile', 'true');
     setLocation(`/post/${postId}`);
