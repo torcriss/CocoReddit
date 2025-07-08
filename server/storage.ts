@@ -115,18 +115,17 @@ export class DatabaseStorage implements IStorage {
           return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(desc(posts.createdAt)).limit(limit).offset(offset);
         }
         return await db.select().from(posts).orderBy(desc(posts.createdAt)).limit(limit).offset(offset);
-      case "top":
+      case "old":
         if (subredditId) {
-          return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(desc(posts.votes)).limit(limit).offset(offset);
+          return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(posts.createdAt).limit(limit).offset(offset);
         }
-        return await db.select().from(posts).orderBy(desc(posts.votes)).limit(limit).offset(offset);
-      case "hot":
+        return await db.select().from(posts).orderBy(posts.createdAt).limit(limit).offset(offset);
       default:
-        // Simple hot algorithm: order by votes + comment count
+        // Default to new for any other cases
         if (subredditId) {
-          return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(desc(posts.votes), desc(posts.commentCount)).limit(limit).offset(offset);
+          return await db.select().from(posts).where(eq(posts.subredditId, subredditId)).orderBy(desc(posts.createdAt)).limit(limit).offset(offset);
         }
-        return await db.select().from(posts).orderBy(desc(posts.votes), desc(posts.commentCount)).limit(limit).offset(offset);
+        return await db.select().from(posts).orderBy(desc(posts.createdAt)).limit(limit).offset(offset);
     }
   }
 

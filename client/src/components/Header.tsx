@@ -35,10 +35,9 @@ export default function Header({ onSearch, sortBy = "home", onSortByChange, sear
 
   const getSortLabel = (sort: string) => {
     switch (sort) {
-      case "home": return "🏠 Home";
-      case "hot": return "🔥 Hot";
       case "new": return "🆕 New";
-      default: return "🏠 Home";
+      case "old": return "📅 Old";
+      default: return "🆕 New";
     }
   };
 
@@ -51,7 +50,7 @@ export default function Header({ onSearch, sortBy = "home", onSortByChange, sear
             <div className="flex items-center space-x-4">
               <div 
                 className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => onSortByChange?.("home")}
+                onClick={() => onSortByChange?.("new")}
               >
                 <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-sm">C</span>
@@ -75,14 +74,11 @@ export default function Header({ onSearch, sortBy = "home", onSortByChange, sear
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
-                      <DropdownMenuItem onClick={() => onSortByChange("home")}>
-                        🏠 Home
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onSortByChange("hot")}>
-                        🔥 Hot
-                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onSortByChange("new")}>
                         🆕 New
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => onSortByChange("old")}>
+                        📅 Old
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

@@ -12,7 +12,7 @@ import { formatDistanceToNow } from "date-fns";
 import type { Post, Comment } from "@shared/schema";
 
 export default function Home() {
-  const [sortBy, setSortBy] = useState("home");
+  const [sortBy, setSortBy] = useState("new");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSubreddit, setSelectedSubreddit] = useState<number | null>(null);
 
