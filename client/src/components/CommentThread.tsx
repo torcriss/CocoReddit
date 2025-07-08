@@ -8,6 +8,8 @@ import type { Comment } from "@shared/schema";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
+import { Edit2, Trash2, MoreHorizontal } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 interface CommentThreadProps {
   postId: number;
@@ -16,11 +18,15 @@ interface CommentThreadProps {
 interface CommentItemProps {
   comment: Comment;
   onReply: (commentId: number) => void;
+  postId: number;
 }
 
-function CommentItem({ comment, onReply }: CommentItemProps) {
-  const { isAuthenticated } = useAuth();
+function CommentItem({ comment, onReply, postId }: CommentItemProps) {
+  const { isAuthenticated, user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [isEditing, setIsEditing] = useState(false);
+  const [editContent, setEditContent] = useState(comment.content);
 
   const formatTimeAgo = (date: Date | string | null) => {
     if (!date) return "unknown";
@@ -37,6 +43,105 @@ function CommentItem({ comment, onReply }: CommentItemProps) {
   ];
   const avatarColor = avatarColors[comment.id % avatarColors.length];
 
+  // Check if current user owns this comment
+  const isOwner = user && (
+    comment.authorUsername === user.id ||
+    comment.authorUsername === user.email ||
+    comment.authorUsername === user.firstName ||
+    comment.authorUsername === (user.firstName || user.email)
+  );
+
+  // Check if comment is deleted
+  const isDeleted = comment.content === "Comment deleted by user";
+
+  // Edit comment mutation
+  const editCommentMutation = useMutation({
+    mutationFn: async (content: string) => {
+      return await apiRequest(`/api/comments/${comment.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content }),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/posts", postId, "comments"] });
+      setIsEditing(false);
+      toast({
+        title: "Success",
+        description: "Comment updated successfully",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to update comment",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete comment mutation
+  const deleteCommentMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest(`/api/comments/${comment.id}`, {
+        method: "DELETE",
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/posts", postId, "comments"] });
+      toast({
+        title: "Success",
+        description: "Comment deleted successfully",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Error",
+        description: "Failed to delete comment",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleEditSubmit = () => {
+    if (editContent.trim()) {
+      editCommentMutation.mutate(editContent.trim());
+    }
+  };
+
+  const handleEditCancel = () => {
+    setEditContent(comment.content);
+    setIsEditing(false);
+  };
+
+  const handleDelete = () => {
+    if (window.confirm("Are you sure you want to delete this comment?")) {
+      deleteCommentMutation.mutate();
+    }
+  };
+
   return (
     <div id={`comment-${comment.id}`} className={(comment.depth || 0) > 0 ? "comment-line" : ""}>
       <div className="flex space-x-3">
@@ -48,27 +153,87 @@ function CommentItem({ comment, onReply }: CommentItemProps) {
           </div>
         </div>
         <div className="flex-1">
-          <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400 mb-1">
-            <span className="font-medium text-gray-900 dark:text-white">
-              u/{comment.authorUsername}
-            </span>
-            <span>{formatTimeAgo(comment.createdAt)}</span>
-          </div>
-          <p className="text-gray-700 dark:text-gray-300 mb-2">
-            {comment.content}
-          </p>
-          <div className="flex items-center space-x-4">
-            {isAuthenticated && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onReply(comment.id)}
-                className="text-xs text-gray-500 dark:text-gray-400 hover:text-reddit-blue font-medium"
-              >
-                Reply
-              </Button>
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center space-x-2 text-xs text-gray-500 dark:text-gray-400">
+              <span className="font-medium text-gray-900 dark:text-white">
+                u/{comment.authorUsername}
+              </span>
+              <span>{formatTimeAgo(comment.createdAt)}</span>
+              {comment.updatedAt && comment.updatedAt !== comment.createdAt && (
+                <span className="text-gray-400">(edited)</span>
+              )}
+            </div>
+            
+            {/* Edit/Delete Menu for Owner */}
+            {isOwner && isAuthenticated && !isDeleted && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem onClick={() => setIsEditing(true)}>
+                    <Edit2 className="h-4 w-4 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDelete} className="text-red-600 dark:text-red-400">
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             )}
           </div>
+          
+          {/* Comment Content or Edit Form */}
+          {isEditing ? (
+            <div className="space-y-2">
+              <Textarea
+                value={editContent}
+                onChange={(e) => setEditContent(e.target.value)}
+                className="min-h-[100px] resize-none"
+                placeholder="Edit your comment..."
+              />
+              <div className="flex space-x-2">
+                <Button
+                  size="sm"
+                  onClick={handleEditSubmit}
+                  disabled={editCommentMutation.isPending || !editContent.trim()}
+                >
+                  {editCommentMutation.isPending ? "Updating..." : "Update"}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleEditCancel}
+                  disabled={editCommentMutation.isPending}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <p className={`mb-2 ${isDeleted ? "text-gray-400 dark:text-gray-500 italic" : "text-gray-700 dark:text-gray-300"}`}>
+              {comment.content}
+            </p>
+          )}
+          
+          {/* Action Buttons */}
+          {!isEditing && (
+            <div className="flex items-center space-x-4">
+              {isAuthenticated && !isDeleted && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => onReply(comment.id)}
+                  className="text-xs text-gray-500 dark:text-gray-400 hover:text-reddit-blue font-medium"
+                >
+                  Reply
+                </Button>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -195,7 +360,7 @@ export default function CommentThread({ postId }: CommentThreadProps) {
 
   const renderComment = (comment: Comment & { replies: Comment[] }) => (
     <div key={comment.id} className="space-y-4">
-      <CommentItem comment={comment} onReply={setReplyingTo} />
+      <CommentItem comment={comment} onReply={setReplyingTo} postId={postId} />
       
       {replyingTo === comment.id && (
         <div className="ml-11 space-y-2">

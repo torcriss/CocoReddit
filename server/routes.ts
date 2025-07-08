@@ -146,9 +146,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.patch("/api/comments/:id", async (req, res) => {
+  app.patch("/api/comments/:id", isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
+      const userId = req.user.claims.sub;
+      
+      // Get existing comment to check ownership
+      const existingComment = await storage.getComment(id);
+      if (!existingComment) {
+        return res.status(404).json({ error: "Comment not found" });
+      }
+      
+      // Check if user owns the comment
+      if (existingComment.authorUsername !== userId && 
+          existingComment.authorUsername !== req.user.claims.email &&
+          existingComment.authorUsername !== req.user.claims.firstName) {
+        return res.status(403).json({ error: "Not authorized to edit this comment" });
+      }
+      
       const comment = await storage.updateComment(id, req.body);
       if (!comment) {
         return res.status(404).json({ error: "Comment not found" });
@@ -159,14 +174,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/comments/:id", async (req, res) => {
+  app.delete("/api/comments/:id", isAuthenticated, async (req: any, res) => {
     try {
       const id = parseInt(req.params.id);
-      const deleted = await storage.deleteComment(id);
-      if (!deleted) {
+      const userId = req.user.claims.sub;
+      
+      // Get existing comment to check ownership
+      const existingComment = await storage.getComment(id);
+      if (!existingComment) {
         return res.status(404).json({ error: "Comment not found" });
       }
-      res.status(204).send();
+      
+      // Check if user owns the comment
+      if (existingComment.authorUsername !== userId && 
+          existingComment.authorUsername !== req.user.claims.email &&
+          existingComment.authorUsername !== req.user.claims.firstName) {
+        return res.status(403).json({ error: "Not authorized to delete this comment" });
+      }
+      
+      // Soft delete - mark as deleted instead of actually deleting
+      const deletedComment = await storage.updateComment(id, { 
+        content: "Comment deleted by user",
+        deletedAt: new Date()
+      });
+      
+      if (!deletedComment) {
+        return res.status(404).json({ error: "Comment not found" });
+      }
+      
+      res.json(deletedComment);
     } catch (error) {
       res.status(500).json({ error: "Failed to delete comment" });
     }

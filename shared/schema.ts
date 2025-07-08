@@ -56,6 +56,8 @@ export const comments = pgTable("comments", {
   votes: integer("votes").default(0),
   depth: integer("depth").default(0),
   createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  deletedAt: timestamp("deleted_at"),
 });
 
 export const votes = pgTable("votes", {
