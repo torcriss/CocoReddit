@@ -303,10 +303,7 @@ export default function PostCard({ post }: PostCardProps) {
               variant="ghost"
               size="sm"
               onClick={handleShare}
-              className={cn(
-                "flex items-center space-x-1 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700",
-                isShared === post.id ? "text-reddit-orange bg-orange-50 dark:bg-orange-900/20" : "text-gray-500 dark:text-gray-400"
-              )}
+              className="flex items-center space-x-1 px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
             >
               <Share2 className="h-4 w-4" />
               <span>Share</span>

@@ -340,11 +340,7 @@ export default function PostDetail() {
                       });
                     });
                   }}
-                  className={`flex items-center space-x-1 text-xs hover:bg-gray-100 dark:hover:bg-reddit-dark ${
-                    isShared(parseInt(id!)) 
-                      ? 'text-orange-500 dark:text-orange-400' 
-                      : 'text-gray-500 dark:text-gray-400'
-                  }`}
+                  className="flex items-center space-x-1 text-xs hover:bg-gray-100 dark:hover:bg-reddit-dark text-gray-500 dark:text-gray-400"
                 >
                   <Share className="h-4 w-4" />
                   <span>Share</span>
