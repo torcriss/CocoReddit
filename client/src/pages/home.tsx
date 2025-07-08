@@ -12,9 +12,8 @@ import { formatDistanceToNow } from "date-fns";
 import type { Post, Comment } from "@shared/schema";
 
 export default function Home() {
-  const [sortBy, setSortBy] = useState("hot");
+  const [sortBy, setSortBy] = useState("home");
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState<"home" | "popular">("home");
   const [selectedSubreddit, setSelectedSubreddit] = useState<number | null>(null);
 
   // Check URL params for search query on load
@@ -75,9 +74,7 @@ export default function Home() {
   );
 
   // Apply popular mode filter (client-side since it's a UI state)
-  const filteredAndSortedPosts = viewMode === "popular" 
-    ? uniquePosts.filter((post: Post) => (post.votes || 0) >= 1)
-    : uniquePosts;
+  const filteredAndSortedPosts = uniquePosts;
 
   // Infinite scroll effect
   useEffect(() => {
@@ -140,14 +137,7 @@ export default function Home() {
 
 
 
-  const handleViewModeChange = (mode: "home" | "popular") => {
-    setViewMode(mode);
-    // Reset user-specific views when changing view mode
-    setShowUserPosts(false);
-    setShowUserComments(false);
-    setSelectedSubreddit(null);
-    setSearchQuery(""); // Clear search when switching views
-  };
+
 
   const handleSubredditSelect = (subredditId: number | null) => {
     setSelectedSubreddit(subredditId);
@@ -165,8 +155,6 @@ export default function Home() {
     <div className="min-h-screen bg-gray-50 dark:bg-reddit-dark">
       <Header 
         onSearch={setSearchQuery} 
-        viewMode={viewMode}
-        onViewModeChange={handleViewModeChange}
         sortBy={sortBy}
         onSortByChange={handleSortChange}
         searchQuery={searchQuery}
@@ -177,9 +165,9 @@ export default function Home() {
           {/* Main Content */}
           <main className="flex-1 min-w-0">
             {/* Context Headers - Only show when specific conditions are met */}
-            {(viewMode === "popular" || selectedSubreddit || showUserPosts || showUserComments || searchQuery) && (
+            {(selectedSubreddit || showUserPosts || showUserComments || searchQuery) && (
               <div className="bg-white dark:bg-reddit-darker rounded-lg border border-gray-200 dark:border-gray-700 p-4 mb-6">
-                {viewMode === "popular" && (
+                {false && (
                   <div className="mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
                     <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center space-x-2">
                       <TrendingUp className="h-5 w-5 text-reddit-orange" />

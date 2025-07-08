@@ -11,14 +11,12 @@ import type { User } from "@shared/schema";
 
 interface HeaderProps {
   onSearch: (query: string) => void;
-  viewMode?: "home" | "popular";
-  onViewModeChange?: (mode: "home" | "popular") => void;
   sortBy?: string;
   onSortByChange?: (sort: string) => void;
   searchQuery?: string;
 }
 
-export default function Header({ onSearch, viewMode = "home", onViewModeChange, sortBy = "hot", onSortByChange, searchQuery = "" }: HeaderProps) {
+export default function Header({ onSearch, sortBy = "home", onSortByChange, searchQuery = "" }: HeaderProps) {
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [isCreatePostOpen, setIsCreatePostOpen] = useState(false);
   const { theme, toggleTheme } = useTheme();
@@ -37,10 +35,10 @@ export default function Header({ onSearch, viewMode = "home", onViewModeChange, 
 
   const getSortLabel = (sort: string) => {
     switch (sort) {
+      case "home": return "🏠 Home";
       case "hot": return "🔥 Hot";
       case "new": return "🆕 New";
-      case "top": return "⬆️ Top";
-      default: return "🔥 Hot";
+      default: return "🏠 Home";
     }
   };
 
@@ -53,7 +51,7 @@ export default function Header({ onSearch, viewMode = "home", onViewModeChange, 
             <div className="flex items-center space-x-4">
               <div 
                 className="flex items-center space-x-2 cursor-pointer hover:opacity-80 transition-opacity"
-                onClick={() => onViewModeChange?.("home")}
+                onClick={() => onSortByChange?.("home")}
               >
                 <div className="w-8 h-8 bg-gradient-to-br from-orange-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg">
                   <span className="text-white font-bold text-sm">C</span>
@@ -63,33 +61,6 @@ export default function Header({ onSearch, viewMode = "home", onViewModeChange, 
               
               {/* Navigation */}
               <nav className="hidden md:flex items-center space-x-1">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => onViewModeChange?.("home")}
-                  className={`flex items-center space-x-1 ${
-                    viewMode === "home" 
-                      ? "text-reddit-blue bg-blue-50 dark:bg-blue-900/20" 
-                      : "text-gray-700 dark:text-gray-300 hover:text-reddit-blue"
-                  }`}
-                >
-                  <Home className="h-4 w-4" />
-                  <span>Home</span>
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => onViewModeChange?.("popular")}
-                  className={`flex items-center space-x-1 ${
-                    viewMode === "popular" 
-                      ? "text-reddit-blue bg-blue-50 dark:bg-blue-900/20" 
-                      : "text-gray-700 dark:text-gray-300 hover:text-reddit-blue"
-                  }`}
-                >
-                  <Bookmark className="h-4 w-4" />
-                  <span>Popular</span>
-                </Button>
-                
                 {/* Sort Dropdown */}
                 {onSortByChange && (
                   <DropdownMenu>
@@ -104,14 +75,14 @@ export default function Header({ onSearch, viewMode = "home", onViewModeChange, 
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start">
+                      <DropdownMenuItem onClick={() => onSortByChange("home")}>
+                        🏠 Home
+                      </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onSortByChange("hot")}>
                         🔥 Hot
                       </DropdownMenuItem>
                       <DropdownMenuItem onClick={() => onSortByChange("new")}>
                         🆕 New
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onSortByChange("top")}>
-                        ⬆️ Top
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
