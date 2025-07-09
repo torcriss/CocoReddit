@@ -54,6 +54,31 @@ export default function UserProfile() {
     queryKey: ["/api/subreddits"],
   });
 
+  // Clear all saved posts mutation - must be before early return
+  const clearSavedPostsMutation = useMutation({
+    mutationFn: async () => {
+      // Remove all saved posts one by one
+      const promises = savedPosts.map(post => 
+        apiRequest("DELETE", `/api/saved-posts/${post.id}`)
+      );
+      await Promise.all(promises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
+      toast({
+        title: "Success",
+        description: "All saved posts have been cleared",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to clear saved posts",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Early return after all hooks are called
   if (!isAuthenticated || !user) {
     return (
@@ -99,31 +124,6 @@ export default function UserProfile() {
     const subreddit = subreddits.find((s: Subreddit) => s.id === subredditId);
     return subreddit?.name || null;
   };
-
-  // Clear all saved posts mutation
-  const clearSavedPostsMutation = useMutation({
-    mutationFn: async () => {
-      // Remove all saved posts one by one
-      const promises = savedPosts.map(post => 
-        apiRequest("DELETE", `/api/saved-posts/${post.id}`)
-      );
-      await Promise.all(promises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/saved-posts"] });
-      toast({
-        title: "Success",
-        description: "All saved posts have been cleared",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to clear saved posts",
-        variant: "destructive",
-      });
-    },
-  });
 
   const handleClearSavedPosts = () => {
     if (savedPosts.length === 0) return;
@@ -274,7 +274,9 @@ export default function UserProfile() {
                     No comments yet
                   </div>
                 ) : (
-                  userComments.map((comment) => {
+                  userComments
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .map((comment) => {
                     const commentPost = posts.find(p => p.id === comment.postId);
                     return (
                       <div

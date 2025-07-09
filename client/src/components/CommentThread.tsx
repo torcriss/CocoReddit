@@ -73,6 +73,8 @@ function CommentItem({ comment, onReply, postId }: CommentItemProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts", postId, "comments"] });
+      // Also invalidate the comments query used by the Profile page
+      queryClient.invalidateQueries({ queryKey: ["/api/comments/all"] });
       setIsEditing(false);
       toast({
         title: "Success",
@@ -106,6 +108,8 @@ function CommentItem({ comment, onReply, postId }: CommentItemProps) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/posts", postId, "comments"] });
+      // Also invalidate the comments query used by the Profile page
+      queryClient.invalidateQueries({ queryKey: ["/api/comments/all"] });
       toast({
         title: "Success",
         description: "Comment deleted successfully",
