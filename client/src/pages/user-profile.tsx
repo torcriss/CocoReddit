@@ -274,7 +274,9 @@ export default function UserProfile() {
                     No comments yet
                   </div>
                 ) : (
-                  userComments.map((comment) => {
+                  userComments
+                    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+                    .map((comment) => {
                     const commentPost = posts.find(p => p.id === comment.postId);
                     return (
                       <div
