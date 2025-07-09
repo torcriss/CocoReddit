@@ -10,6 +10,17 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Edit2, Trash2, MoreHorizontal } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface CommentThreadProps {
   postId: number;
@@ -27,6 +38,7 @@ function CommentItem({ comment, onReply, postId }: CommentItemProps) {
   const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(comment.content);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   const formatTimeAgo = (date: Date | string | null) => {
     if (!date) return "unknown";
@@ -131,13 +143,37 @@ function CommentItem({ comment, onReply, postId }: CommentItemProps) {
   };
 
   const handleDelete = () => {
-    if (window.confirm("Are you sure you want to delete this comment?")) {
-      deleteCommentMutation.mutate();
-    }
+    deleteCommentMutation.mutate();
+    setShowDeleteDialog(false);
   };
 
   return (
-    <div id={`comment-${comment.id}`} className={(comment.depth || 0) > 0 ? "comment-line" : ""}>
+    <>
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent className="sm:max-w-[425px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-gray-900 dark:text-white">
+              Delete Comment
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-gray-600 dark:text-gray-400">
+              Are you sure you want to delete this comment? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white border-gray-300 dark:border-gray-600 hover:bg-gray-200 dark:hover:bg-gray-600">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-red-600 hover:bg-red-700 text-white"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+      
+      <div id={`comment-${comment.id}`} className={(comment.depth || 0) > 0 ? "comment-line" : ""}>
       <div className="flex space-x-3">
         <div className="flex-shrink-0">
           <div className={`w-8 h-8 ${avatarColor} rounded-full flex items-center justify-center`}>
@@ -171,7 +207,7 @@ function CommentItem({ comment, onReply, postId }: CommentItemProps) {
                     <Edit2 className="h-4 w-4 mr-2" />
                     Edit
                   </DropdownMenuItem>
-                  <DropdownMenuItem onClick={handleDelete} className="text-red-600 dark:text-red-400">
+                  <DropdownMenuItem onClick={() => setShowDeleteDialog(true)} className="text-red-600 dark:text-red-400">
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete
                   </DropdownMenuItem>
@@ -230,7 +266,8 @@ function CommentItem({ comment, onReply, postId }: CommentItemProps) {
           )}
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }
 
